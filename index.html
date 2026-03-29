@@ -405,7 +405,7 @@
                     <button onclick="fetchShoppingList('藥妝店')"
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-xs hover:border-slate-800 transition">藥妝店</button>
                     <button onclick="fetchShoppingList('唐吉訶德')"
-                        class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-xs hover:border-slate-800 transition">堂吉訶德</button>
+                        class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-xs hover:border-slate-800 transition">唐吉訶德</button>
                     <button onclick="fetchShoppingList('3COINS')"
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-xs hover:border-slate-800 transition">3COINS</button>
                     <button onclick="fetchShoppingList('衣服包包鞋子')"
@@ -567,11 +567,16 @@
                 <textarea id="receipt-desc" rows="3"
                     class="w-full border border-gray-300 p-3 focus:outline-none focus:border-slate-800 text-sm rounded-sm"
                     placeholder="輸入消費金額、代墊人員、或照片紀錄..."></textarea>
-                <div class="flex justify-end gap-3 mt-4">
-                    <button onclick="closeReceiptModal()"
-                        class="px-4 py-2 border border-gray-300 text-gray-600 text-sm hover:bg-gray-50 transition rounded-sm">取消</button>
-                    <button onclick="saveReceiptDesc()"
-                        class="px-4 py-2 bg-slate-800 text-white text-sm hover:bg-slate-700 transition rounded-sm">儲存</button>
+
+                <div class="flex justify-between items-center mt-5 pt-3 border-t border-gray-100">
+                    <button onclick="deleteReceipt()"
+                        class="text-red-500 hover:text-red-700 text-sm font-bold px-2">刪除照片</button>
+                    <div class="flex gap-2">
+                        <button onclick="closeReceiptModal()"
+                            class="px-4 py-2 border border-gray-300 text-gray-600 text-sm hover:bg-gray-50 transition rounded-sm font-medium">取消</button>
+                        <button onclick="saveReceiptDesc()" id="btn-save-receipt"
+                            class="px-4 py-2 bg-slate-800 text-white text-sm hover:bg-slate-700 transition rounded-sm font-bold">儲存</button>
+                    </div>
                 </div>
             </div>
         </div>
