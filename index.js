@@ -146,3 +146,11 @@ function openModal(item = null) {
 function closeModal() {
     document.getElementById('add-modal').classList.add('hidden');
 }
+
+// --- 切換右下角浮動選單 (FAB) ---
+function toggleFab() {
+    const fabMenu = document.getElementById('fab-menu');
+    if (fabMenu) {
+        fabMenu.classList.toggle('hidden');
+    }
+}
