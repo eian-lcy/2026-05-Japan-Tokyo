@@ -3,6 +3,7 @@ checkUser((session) => {
     initLuggageStorage();
     fetchShoppingList();
     fetchReceipts();
+    enableRealtime();
 });
 
 // --- 行李確認清單 ---
