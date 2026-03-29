@@ -1,0 +1,96 @@
+/* 1. 字體與基礎設定 */
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+body {
+    font-family: 'Noto Sans TC', sans-serif;
+    background-color: #FAFAFA;
+    color: #1e293b;
+}
+
+/* 2. 通用動畫與溢出處理 */
+/* 手風琴與分帳明細展開動畫 */
+.transition-max-height {
+    transition: max-height 0.4s ease-in-out;
+}
+
+/* 隱藏原生捲軸（用於購物分類橫向滑動） */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* 文字裁切（收據備註預覽） */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* 3. 分帳頁面專用樣式 */
+/* 分帳頁頂部頁籤切換 */
+.tab-active {
+    border-bottom: 2px solid #1e293b;
+    color: #1e293b;
+    font-weight: 700;
+}
+
+.tab-inactive {
+    color: #94a3b8;
+    border-bottom: 2px solid transparent;
+}
+
+/* 隱藏數字輸入框的上下箭頭（讓匯率輸入更美觀） */
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+}
+
+/* 4. 購物清單分類顏色（對應 script.js 中的 location） */
+/* 若 Tailwind class 無法完全覆蓋時的補強 */
+.category-muji {
+    @apply bg-red-50 text-red-700 border-red-100;
+}
+
+.category-drugstore {
+    @apply bg-blue-50 text-blue-700 border-blue-100;
+}
+
+.category-donki {
+    @apply bg-yellow-50 text-yellow-700 border-yellow-100;
+}
+
+.category-3coins {
+    @apply bg-green-50 text-green-700 border-green-100;
+}
+
+.category-fashion {
+    @apply bg-purple-50 text-purple-700 border-purple-100;
+}
+
+.category-convenience {
+    @apply bg-indigo-50 text-indigo-700 border-indigo-100;
+}
+
+.category-souvenir {
+    @apply bg-orange-50 text-orange-700 border-orange-100;
+}
+
+.category-other {
+    @apply bg-gray-50 text-gray-700 border-gray-100;
+}
+
+/* 5. 手機版優化 */
+@media (max-width: 640px) {
+
+    /* 讓 Modal 在手機上以底部抽屜形式呈現 */
+    #expense-modal>div,
+    #add-modal>div {
+        border-radius: 1.5rem 1.5rem 0 0;
+    }
+}

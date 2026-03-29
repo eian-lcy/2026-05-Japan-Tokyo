@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>分帳系統 | TOKYO 2026</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+  <link rel="stylesheet" href="main.css">
+</head>
+
+<body class="antialiased pb-24">
+
+  <header class="bg-white border-b border-gray-200 sticky top-0 z-30">
+    <div class="max-w-md mx-auto px-4 py-4 flex items-center justify-between">
+      <a href="index.html" class="text-gray-500 hover:text-slate-800 transition flex items-center gap-1 text-sm">
+        <span>← 返回行程</span>
+      </a>
+      <h1 class="text-lg font-bold tracking-wider text-slate-800">公費分帳</h1>
+      <div class="w-16"></div>
+    </div>
+
+    <div class="max-w-md mx-auto flex text-center text-sm">
+      <button onclick="switchTab('list')" id="tab-list" class="flex-1 py-3 tab-active transition">消費明細</button>
+      <button onclick="switchTab('settlement')" id="tab-settlement"
+        class="flex-1 py-3 tab-inactive transition">結算總覽</button>
+    </div>
+  </header>
+
+  <main class="max-w-md mx-auto p-4 space-y-4">
+
+    <div id="view-list" class="space-y-3">
+      <div id="expenses-container">
+        <p class="text-center py-10 text-gray-400 text-sm">載入中...</p>
+      </div>
+    </div>
+
+    <div id="view-settlement" class="hidden space-y-4">
+
+      <div class="bg-white p-4 border border-gray-100 rounded-lg shadow-sm">
+        <div class="flex bg-gray-50 border border-gray-100 rounded-lg p-1 text-[13px] font-medium text-center">
+          <button type="button" onclick="setSettlementMode('separate')" id="btn-set-sep"
+            class="flex-1 py-2 rounded-md bg-white shadow-sm text-slate-800 font-bold transition">按幣別分開</button>
+          <button type="button" onclick="setSettlementMode('merge')" id="btn-set-merge"
+            class="flex-1 py-2 rounded-md text-gray-500 hover:text-slate-800 transition">合併結算</button>
+        </div>
+
+        <div id="merge-settings" class="hidden border border-gray-200 rounded-lg p-5 bg-white shadow-sm mt-4">
+          <div class="flex flex-col gap-5">
+            <div>
+              <label class="block text-xs font-bold text-gray-400 mb-2">結算目標幣別</label>
+              <select id="merge-target" onchange="handleCurrencyChange()"
+                class="w-full border border-gray-300 rounded-lg px-3 py-2.5 focus:outline-none focus:border-slate-800 bg-gray-50 font-bold text-slate-800 text-base cursor-pointer">
+                <option value="TWD">台幣 (TWD)</option>
+                <option value="JPY">日圓 (JPY)</option>
+              </select>
+            </div>
+
+            <div>
+              <div class="flex justify-between items-end mb-2">
+                <label class="block text-xs font-bold text-gray-400">當前匯率設定</label>
+                <button onclick="fetchExchangeRate()" id="btn-refresh-rate"
+                  class="text-[11px] font-bold text-blue-500 hover:text-blue-700 flex items-center gap-1 transition bg-blue-50 px-2.5 py-1 rounded shadow-sm">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24"
+                    stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                      d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg> 自動更新
+                </button>
+              </div>
+              <div
+                class="flex items-center justify-between border border-gray-300 bg-white rounded-lg px-4 py-2.5 focus-within:border-slate-800 focus-within:ring-1 focus-within:ring-slate-800 transition-all">
+                <span class="text-sm font-bold text-gray-500 whitespace-nowrap flex-shrink-0" id="rate-base-currency">1
+                  JPY</span>
+                <span class="text-sm text-gray-400 mx-2 whitespace-nowrap flex-shrink-0">=</span>
+                <input type="number" id="merge-rate" value="0.21" step="0.0001" oninput="calculateSettlement()"
+                  class="w-full text-right focus:outline-none font-bold text-slate-800 text-lg bg-transparent tracking-wider">
+                <span class="text-sm font-bold text-gray-500 ml-2 whitespace-nowrap flex-shrink-0"
+                  id="rate-target-currency">TWD</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="export-area" class="bg-white border border-gray-100 rounded-lg shadow-sm overflow-hidden">
+        <div class="text-center py-6 bg-slate-800 text-white">
+          <h2 class="text-xl font-bold tracking-widest">TOKYO 2026</h2>
+          <p class="text-xs text-gray-300 mt-1 opacity-80">公費結算單</p>
+        </div>
+
+        <div class="p-5 space-y-7">
+
+          <div>
+            <h3 class="font-bold text-slate-800 mb-3 text-sm border-l-4 border-slate-800 pl-2">個人實際總花費 <span
+                class="text-[10px] text-gray-400 font-normal ml-1">(含機票等已結清項目)</span></h3>
+            <div id="expenditure-summary" class="grid grid-cols-3 gap-3"></div>
+          </div>
+
+          <div class="border-t border-gray-100 pt-5">
+            <h3 class="font-bold text-slate-800 mb-3 text-sm border-l-4 border-slate-800 pl-2">結算用明細 <span
+                class="text-[10px] text-gray-400 font-normal ml-1">(已排除結清款項)</span></h3>
+            <div id="personal-summary" class="space-y-2"></div>
+          </div>
+
+          <div class="border-t border-gray-100 pt-5">
+            <div class="flex justify-between items-end mb-2">
+              <h3 class="font-bold text-slate-800 text-sm border-l-4 border-slate-800 pl-2">結算步驟</h3>
+              <div class="text-[10px] text-gray-400 font-bold" id="progress-text">已結清 0 / 0</div>
+            </div>
+            <div class="w-full bg-gray-100 rounded-full h-1.5 mb-4 overflow-hidden">
+              <div id="progress-bar" class="bg-green-500 h-1.5 rounded-full transition-all duration-500"
+                style="width: 0%"></div>
+            </div>
+
+            <div id="settlement-steps" class="space-y-3 text-sm"></div>
+          </div>
+        </div>
+      </div>
+
+      <button onclick="exportToImage()"
+        class="w-full bg-slate-800 text-white py-3 rounded-lg shadow-md font-bold hover:bg-slate-700 transition flex justify-center items-center gap-2">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        </svg>
+        匯出結算明細 (圖片)
+      </button>
+
+    </div>
+  </main>
+
+  <button onclick="openModal()"
+    class="fixed bottom-6 right-6 w-14 h-14 bg-slate-800 text-white rounded-full shadow-lg flex justify-center items-center hover:bg-slate-700 transition z-40">
+    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+  </button>
+
+  <div id="expense-modal"
+    class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-end md:items-center z-50 transition-opacity">
+    <div
+      class="bg-white w-full md:max-w-md h-[90vh] md:h-auto md:max-h-[90vh] rounded-t-2xl md:rounded-lg flex flex-col shadow-2xl">
+
+      <div class="flex justify-between items-center p-4 border-b border-gray-100 shrink-0">
+        <button onclick="closeModal()" class="text-gray-500 text-sm px-2">取消</button>
+        <h3 class="text-base font-bold text-slate-800" id="modal-title">新增紀錄</h3>
+        <button onclick="saveExpense()" class="text-slate-800 font-bold text-sm px-2">儲存</button>
+      </div>
+
+      <div class="p-5 overflow-y-auto flex-1 space-y-5 bg-gray-50/50">
+        <input type="hidden" id="form-id">
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100 space-y-3 relative">
+          <div id="item-mode-overlay"
+            class="hidden absolute right-4 top-4 bg-amber-50 text-amber-700 text-[10px] px-2 py-1 rounded font-bold">
+            自動計算總計</div>
+          <div class="flex items-end gap-3">
+            <div class="w-24">
+              <label class="block text-xs text-gray-400 mb-1">幣別</label>
+              <select id="form-currency"
+                class="w-full border-b border-gray-300 py-1 focus:outline-none focus:border-slate-800 font-bold text-slate-800 bg-transparent">
+                <option value="JPY">JPY ¥</option>
+                <option value="TWD">TWD $</option>
+              </select>
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-gray-400 mb-1">總金額 <span class="text-red-500">*</span></label>
+              <input type="number" id="form-amount" oninput="calculateSplit()" placeholder="0"
+                class="w-full border-b border-gray-300 py-1 text-2xl font-bold text-slate-800 focus:outline-none focus:border-slate-800 transition-colors">
+            </div>
+          </div>
+          <div><label class="block text-xs text-gray-400 mb-1">說明 (選填)</label><input type="text" id="form-desc"
+              placeholder="例如：晚餐、交通費"
+              class="w-full border-b border-gray-300 py-1 text-sm focus:outline-none focus:border-slate-800"></div>
+          <div><label class="block text-xs text-gray-400 mb-1">日期</label><input type="date" id="form-date"
+              class="w-full border-b border-gray-300 py-1 text-sm focus:outline-none focus:border-slate-800 text-gray-600">
+          </div>
+
+          <div class="flex items-center justify-between bg-green-50 p-3 rounded-lg border border-green-100 mt-2">
+            <label class="text-sm font-bold text-green-800 cursor-pointer flex-1" for="form-is-settled">✅ 此筆已結清
+              (不列入結算算帳)</label>
+            <input type="checkbox" id="form-is-settled" class="accent-green-600 w-5 h-5 cursor-pointer">
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <label class="block text-xs font-bold text-slate-800 mb-3">誰先代墊的？ (付款人)</label>
+          <div class="flex gap-4">
+            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="payer" value="賴" checked
+                class="accent-slate-800"><span class="text-sm font-medium">賴</span></label>
+            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="payer" value="李"
+                class="accent-slate-800"><span class="text-sm font-medium">李</span></label>
+            <label class="flex items-center gap-2 cursor-pointer"><input type="radio" name="payer" value="林"
+                class="accent-slate-800"><span class="text-sm font-medium">林</span></label>
+          </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm border border-gray-100">
+          <div class="flex justify-between items-center mb-3">
+            <label class="block text-xs font-bold text-slate-800">分帳方式</label>
+            <button type="button" id="btn-equal" onclick="splitEqually()"
+              class="text-[10px] border border-slate-300 text-slate-600 px-3 py-1 rounded hover:bg-slate-100 transition">均分餘額</button>
+          </div>
+
+          <div class="flex bg-gray-100 rounded-lg p-1 mb-4 text-[11px] font-medium text-center">
+            <button type="button" onclick="setSplitMode('ratio')" id="btn-mode-ratio"
+              class="flex-1 py-1.5 rounded-md bg-white shadow-sm text-slate-800 font-bold transition">按比例</button>
+            <button type="button" onclick="setSplitMode('item')" id="btn-mode-item"
+              class="flex-1 py-1.5 rounded-md text-gray-500 hover:text-slate-800 transition">按項目</button>
+            <button type="button" onclick="setSplitMode('custom')" id="btn-mode-custom"
+              class="flex-1 py-1.5 rounded-md text-gray-500 hover:text-slate-800 transition">自訂金額</button>
+            <input type="hidden" id="form-split-mode" value="ratio">
+          </div>
+
+          <div class="space-y-2" id="split-inputs-container"></div>
+
+          <div class="space-y-3 hidden" id="split-items-container">
+            <div id="items-list" class="space-y-3"></div>
+            <button type="button" onclick="addItemRow()"
+              class="w-full border border-dashed border-gray-300 text-gray-500 py-3 rounded-lg text-xs font-bold hover:bg-gray-50 transition flex items-center justify-center gap-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24"
+                stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg> 手動新增項目
+            </button>
+          </div>
+
+          <div class="flex justify-between items-center mt-4 pt-3 border-t border-gray-100 text-xs">
+            <span class="text-gray-500" id="validation-label">合計驗算</span>
+            <span id="validation-text" class="font-bold text-slate-800">0 / 0</span>
+          </div>
+        </div>
+
+        <div class="pt-2 pb-6">
+          <button type="button" id="btn-delete" onclick="deleteExpense()"
+            class="hidden w-full py-3 bg-red-50 text-red-500 font-bold text-sm rounded-lg hover:bg-red-100 transition border border-red-100">刪除此筆紀錄</button>
+        </div>
+
+      </div>
+    </div>
+  </div>
+  <script src="common.js" defer></script>
+  <script src="split.js" defer></script>
+
+</body>
+
+</html>
