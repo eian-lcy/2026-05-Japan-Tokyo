@@ -40,6 +40,7 @@ async function fetchShoppingList(category = null) {
 }
 
 // --- 渲染購物清單 (終極版：總數與彩色標籤整併於右側) ---
+// --- 渲染購物清單 (加入圖片縮圖與單列明細) ---
 function renderShoppingList(items) {
     const container = document.getElementById('shopping-list-container');
     container.innerHTML = '';
@@ -67,7 +68,7 @@ function renderShoppingList(items) {
         const total = q1 + q2 + q3;
         const colorClass = catColors[item.location] || 'bg-gray-50 text-gray-600';
         
-        // 🎨 彩色標籤群組 (我們把這個從中間搬走)
+        // 極簡無色版：純文字、同一列
         let breakdown = [];
         if (q1 > 0) breakdown.push(`賴 <span class="font-bold text-slate-800">${q1}</span>`);
         if (q2 > 0) breakdown.push(`李 <span class="font-bold text-slate-800">${q2}</span>`);
@@ -79,6 +80,16 @@ function renderShoppingList(items) {
 
         // 將 item 資料轉為字串，以便傳入 onclick 編輯
         const itemStr = encodeURIComponent(JSON.stringify(item));
+        
+        // 處理單引號跳脫，避免文字內有單引號導致 onclick 壞掉
+        const safeName = (item.item_name || '').replace(/'/g, "\\'");
+
+        // 📸 判斷是否有圖片，如果有就產生縮圖 HTML，沒有就留空
+        const imgHtml = item.image_url 
+            ? `<div class="w-12 h-12 shrink-0 rounded-sm overflow-hidden border border-gray-200 mt-0.5 cursor-zoom-in group" onclick="openLightbox('${item.image_url}', '${safeName}')">
+                 <img src="${item.image_url}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
+               </div>`
+            : '';
 
         container.innerHTML += `
             <div class="bg-white border border-gray-100 shadow-sm p-3 flex flex-col transition hover:shadow-md mb-2">
@@ -86,6 +97,8 @@ function renderShoppingList(items) {
                     <div class="pt-1">
                         <input type="checkbox" ${item.is_checked ? 'checked' : ''} onchange="updateCheck('${item.id}', this.checked)" class="accent-slate-800 w-5 h-5 cursor-pointer">
                     </div>
+                    
+                    ${imgHtml}
                     
                     <div class="flex-1 cursor-pointer" onclick="openModal('${itemStr}')">
                         <div class="font-bold text-slate-800 text-sm">${item.item_name} <span class="text-xs font-normal text-gray-400 ml-1">${item.spec || ''}</span></div>
