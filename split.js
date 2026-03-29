@@ -21,7 +21,7 @@ async function fetchExpenses() {
 // --- 2. 核心計算邏輯 (含整趟總花費) ---
 function calculateSettlement() {
     let paid = { JPY: { '賴': 0, '李': 0, '林': 0 }, TWD: { '賴': 0, '李': 0, '林': 0 } };
-    let share = { JPY: { '賴': 0, '李': 0, '林': 0 }, TWD: { '賴': 0, '聯': 0, '林': 0 } };
+    let share = { JPY: { '賴': 0, '李': 0, '林': 0 }, TWD: { '賴': 0, '李': 0, '林': 0 } };
     let history = { '賴': [], '李': [], '林': [] };
     let absoluteShare = { JPY: { '賴': 0, '李': 0, '林': 0 }, TWD: { '賴': 0, '李': 0, '林': 0 } };
 
@@ -59,7 +59,8 @@ function calculateSettlement() {
             if (targetCurr === 'TWD') {
                 mPaid[p] = paid.TWD[p] + (paid.JPY[p] * rate); mShare[p] = share.TWD[p] + (share.JPY[p] * rate);
             } else {
-                mPaid[p] = paid.JPY[p] + (paid.TWD[p] / rate); mShare[p] = share.JPY[p] + (share.TWD[p] / rate);
+                // mPaid[p] = paid.JPY[p] + (paid.TWD[p] / rate); mShare[p] = share.JPY[p] + (share.TWD[p] / rate);
+                mPaid[p] = paid.JPY[p] + (paid.TWD[p] * rate); mShare[p] = share.JPY[p] + (share.TWD[p] * rate);
             }
         });
         debts.push(...getGreedyDebts(targetCurr, mPaid, mShare));
@@ -81,7 +82,8 @@ function renderExpenditureSummary(absShare) {
             html = `<div class="text-[10px] font-bold text-slate-700">¥ ${Math.round(absShare.JPY[p]).toLocaleString()}</div>
                     <div class="text-[10px] font-bold text-slate-700">$ ${Math.round(absShare.TWD[p]).toLocaleString()}</div>`;
         } else {
-            let total = (targetCurr === 'TWD') ? Math.round(absShare.TWD[p] + (absShare.JPY[p] * rate)) : Math.round(absShare.JPY[p] + (absShare.TWD[p] / rate));
+            // let total = (targetCurr === 'TWD') ? Math.round(absShare.TWD[p] + (absShare.JPY[p] * rate)) : Math.round(absShare.JPY[p] + (absShare.TWD[p] / rate));
+            let total = (targetCurr === 'TWD') ? Math.round(absShare.TWD[p] + (absShare.JPY[p] * rate)) : Math.round(absShare.JPY[p] + (absShare.TWD[p] * rate));
             html = `<div class="text-xs font-bold text-slate-800">${targetCurr === 'TWD' ? '$' : '¥'} ${total.toLocaleString()}</div>`;
         }
         container.innerHTML += `
@@ -197,6 +199,26 @@ function toggleSummaryAccordion(p) {
     const icon = document.getElementById(`summary-icon-${p}`);
     if (el.style.maxHeight && el.style.maxHeight !== '0px') { el.style.maxHeight = '0px'; icon.style.transform = 'rotate(0deg)'; }
     else { el.style.maxHeight = el.scrollHeight + 'px'; icon.style.transform = 'rotate(180deg)'; }
+}
+
+// --- 切換分帳模式 (分開或合併) ---
+function setSettlementMode(mode) {
+    settlementMode = mode;
+
+    // 切換按鈕樣式
+    document.getElementById('btn-set-sep').className = mode === 'separate'
+        ? 'flex-1 py-2 rounded-md bg-white shadow-sm text-slate-800 font-bold transition'
+        : 'flex-1 py-2 rounded-md text-gray-500 hover:text-slate-800 transition';
+
+    document.getElementById('btn-set-merge').className = mode === 'merge'
+        ? 'flex-1 py-2 rounded-md bg-white shadow-sm text-slate-800 font-bold transition'
+        : 'flex-1 py-2 rounded-md text-gray-500 hover:text-slate-800 transition';
+
+    // 顯示或隱藏匯率設定區塊
+    document.getElementById('merge-settings').classList.toggle('hidden', mode === 'separate');
+
+    // 重新計算與渲染
+    calculateSettlement();
 }
 
 // --- 5. 匯率與分頁切換 ---
@@ -339,3 +361,52 @@ function renderExpenses() {
 function closeModal() { document.getElementById('expense-modal').classList.add('hidden'); }
 async function deleteExpense() { if (confirm('確定刪除？')) { await supabaseClient.from('expenses').delete().eq('id', document.getElementById('form-id').value); closeModal(); fetchExpenses(); } }
 supabaseClient.channel('split-db').on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => fetchExpenses()).subscribe();
+
+// --- 7. 匯出結算明細圖片 ---
+function exportToImage() {
+    const exportArea = document.getElementById('export-area');
+    const exportBtn = document.querySelector('button[onclick="exportToImage()"]');
+    
+    // 如果找不到要匯出的區塊，就停止執行
+    if (!exportArea) {
+        alert('找不到結算明細區塊！');
+        return;
+    }
+
+    // 1. 改變按鈕狀態，提示使用者正在處理中
+    const originalContent = exportBtn.innerHTML;
+    exportBtn.innerHTML = '⏳ 圖片產生中...';
+    exportBtn.disabled = true;
+    exportBtn.classList.add('opacity-70', 'cursor-not-allowed');
+
+    // 2. 呼叫 html2canvas 進行截圖
+    // 設定 scale: 2 可以讓匯出的圖片解析度變高，在手機上放大看文字才不會模糊
+    html2canvas(exportArea, {
+        scale: 2, 
+        backgroundColor: '#FAFAFA', // 確保背景顏色與你的網頁一致
+        useCORS: true // 確保字體或跨域圖片能正常渲染
+    }).then(canvas => {
+        // 3. 將 Canvas 轉為圖片網址 (Base64)
+        const imageURL = canvas.toDataURL('image/png');
+
+        // 4. 建立一個隱藏的下載連結並觸發點擊
+        const link = document.createElement('a');
+        link.href = imageURL;
+        // 自動帶上當天日期的檔名
+        const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+        link.download = `TOKYO2026_結算明細_${today}.png`;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+
+    }).catch(err => {
+        console.error('圖片匯出失敗:', err);
+        alert('圖片匯出失敗，請重試或截圖分享。');
+    }).finally(() => {
+        // 5. 無論成功或失敗，都把按鈕狀態恢復原狀
+        exportBtn.innerHTML = originalContent;
+        exportBtn.disabled = false;
+        exportBtn.classList.remove('opacity-70', 'cursor-not-allowed');
+    });
+}
