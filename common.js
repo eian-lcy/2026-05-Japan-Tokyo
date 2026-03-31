@@ -49,7 +49,7 @@ async function handleLogout() {
 function openLightbox(url, desc = '') {
     if (!url) return;
     document.getElementById('lightbox-img').src = url;
-    document.getElementById('lightbox-desc').innerHTML = desc;
+    document.getElementById('lightbox-desc').innerText = desc;
     document.getElementById('lightbox').classList.remove('hidden');
     document.body.style.overflow = 'hidden';
 }
