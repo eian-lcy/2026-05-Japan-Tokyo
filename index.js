@@ -18,17 +18,19 @@ function initLuggageStorage() {
 
 // --- 購物清單 (類別分類) ---
 let currentListData = [];
+let currentActiveCategory = null; // 紀錄目前使用者選取的分類
 
 async function fetchShoppingList(category = null) {
+    currentActiveCategory = category; // 紀錄分類
     console.log('正在篩選分類:', category || '全部');
     let query = supabaseClient.from('shopping_list').select('*').order('created_at', { ascending: false });
-    
+
     if (category) {
-        query = query.eq('location', category); 
+        query = query.eq('location', category);
     }
 
     const { data, error } = await query;
-    
+
     if (error) {
         console.error('抓取清單失敗 (401請檢查權限):', error.message);
         alert('無法抓取清單，請確認登入狀態或資料庫權限');
@@ -44,7 +46,7 @@ async function fetchShoppingList(category = null) {
 function renderShoppingList(items) {
     const container = document.getElementById('shopping-list-container');
     container.innerHTML = '';
-    
+
     if (!items || items.length === 0) {
         container.innerHTML = '<p class="text-center py-10 text-gray-400">目前此分類下沒有物品</p>';
         return;
@@ -67,25 +69,25 @@ function renderShoppingList(items) {
         const q3 = item.qty_person3 || 0;
         const total = q1 + q2 + q3;
         const colorClass = catColors[item.location] || 'bg-gray-50 text-gray-600';
-        
+
         // 極簡無色版：純文字、同一列
         let breakdown = [];
         if (q1 > 0) breakdown.push(`賴 <span class="font-bold text-slate-800">${q1}</span>`);
         if (q2 > 0) breakdown.push(`李 <span class="font-bold text-slate-800">${q2}</span>`);
         if (q3 > 0) breakdown.push(`林 <span class="font-bold text-slate-800">${q3}</span>`);
-        
-        let breakdownHtml = breakdown.length > 0 
-            ? breakdown.join('<span class="text-gray-300 mx-1.5">|</span>') 
+
+        let breakdownHtml = breakdown.length > 0
+            ? breakdown.join('<span class="text-gray-300 mx-1.5">|</span>')
             : '<span class="text-[10px] text-gray-400">尚未分配</span>';
 
         // 將 item 資料轉為字串，以便傳入 onclick 編輯
         const itemStr = encodeURIComponent(JSON.stringify(item));
-        
+
         // 處理單引號跳脫，避免文字內有單引號導致 onclick 壞掉
         const safeName = (item.item_name || '').replace(/'/g, "\\'");
 
         // 📸 判斷是否有圖片，如果有就產生縮圖 HTML，沒有就留空
-        const imgHtml = item.image_url 
+        const imgHtml = item.image_url
             ? `<div class="w-12 h-12 shrink-0 rounded-sm overflow-hidden border border-gray-200 mt-0.5 cursor-zoom-in group" onclick="openLightbox('${item.image_url}', '${safeName}')">
                  <img src="${item.image_url}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
                </div>`
@@ -145,7 +147,7 @@ async function fetchReceipts() {
 function renderReceipts(items) {
     const grid = document.getElementById('receipts-grid');
     grid.innerHTML = items.length === 0 ? '<div class="col-span-full text-center py-8 text-gray-400 text-sm">目前尚無照片</div>' : '';
-    
+
     items.forEach(item => {
         // 處理沒有備註時的顯示文字
         const descText = item.description ? item.description : '<span class="text-gray-400 text-[10px]">無備註</span>';
@@ -170,8 +172,22 @@ function renderReceipts(items) {
     });
 }
 
+// --- 開啟即時更新 (同時監聽購物清單與收據) ---
 function enableRealtime() {
-    supabaseClient.channel('public-changes').on('postgres_changes', { event: '*', schema: 'public', table: 'shopping_list' }, () => fetchShoppingList()).subscribe();
+    const channel = supabaseClient.channel('public-changes');
+
+    // 1. 監聽購物清單的變化
+    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'shopping_list' }, () => {
+        fetchShoppingList(currentActiveCategory);
+    });
+
+    // 2. 監聽收據照片的變化 (👉 這次補上這個！)
+    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => {
+        fetchReceipts();
+    });
+
+    // 啟動監聽
+    channel.subscribe();
 }
 
 function toggleAccordion(id) {
@@ -185,7 +201,7 @@ async function updateCheck(id, isChecked) {
         .from('shopping_list')
         .update({ is_checked: isChecked })
         .eq('id', id);
-    
+
     if (error) {
         console.error('更新失敗:', error.message);
         alert('更新狀態失敗');
@@ -198,18 +214,18 @@ function openModal(itemStr = null) {
     const form = document.getElementById('form-shopping');
     const deleteBtn = document.getElementById('btn-delete');
     const title = document.getElementById('modal-title');
-    
+
     // 1. 每次打開前先重置所有欄位與圖片預覽
-    form.reset(); 
+    form.reset();
     document.getElementById('form-id').value = '';
     document.getElementById('form-image-url').value = '';
     document.getElementById('img-preview-container').classList.add('hidden');
     document.getElementById('form-img-preview').src = '';
-    
+
     if (itemStr) {
         // 2. 編輯模式：將剛剛傳進來的字串解析回物件
         const item = JSON.parse(decodeURIComponent(itemStr));
-        
+
         document.getElementById('form-id').value = item.id;
         document.getElementById('form-name').value = item.item_name;
         document.getElementById('form-spec').value = item.spec || '';
@@ -218,14 +234,14 @@ function openModal(itemStr = null) {
         document.getElementById('form-qty2').value = item.qty_person2 || 0;
         document.getElementById('form-qty3').value = item.qty_person3 || 0;
         document.getElementById('form-location').value = item.location || '其他';
-        
+
         // 如果原本有圖片，顯示預覽
         if (item.image_url) {
             document.getElementById('form-image-url').value = item.image_url;
             document.getElementById('form-img-preview').src = item.image_url;
             document.getElementById('img-preview-container').classList.remove('hidden');
         }
-        
+
         title.textContent = '編輯品項';
         if (deleteBtn) deleteBtn.classList.remove('hidden');
     } else {
@@ -233,7 +249,7 @@ function openModal(itemStr = null) {
         title.textContent = '新增購物清單';
         if (deleteBtn) deleteBtn.classList.add('hidden');
     }
-    
+
     modal.classList.remove('hidden');
 }
 
@@ -256,7 +272,7 @@ async function uploadReceipt(input) {
 
     const btn = document.getElementById('btn-upload-receipt');
     const originalText = btn.innerHTML;
-    
+
     // 改變按鈕狀態，讓使用者知道正在上傳
     btn.innerHTML = '⏳ 上傳中...';
     btn.disabled = true;
@@ -270,7 +286,7 @@ async function uploadReceipt(input) {
 
         // 2. 上傳圖片到 Supabase Storage (假設你的 Bucket 叫做 'images')
         const { error: uploadError } = await supabaseClient.storage
-            .from('images') 
+            .from('images')
             .upload(filePath, file);
 
         if (uploadError) throw uploadError;
@@ -296,7 +312,7 @@ async function uploadReceipt(input) {
         btn.innerHTML = originalText;
         btn.disabled = false;
         btn.classList.remove('opacity-70', 'cursor-not-allowed');
-        input.value = ''; 
+        input.value = '';
     }
 }
 
@@ -304,7 +320,7 @@ async function uploadReceipt(input) {
 document.addEventListener('DOMContentLoaded', () => {
     const fileInput = document.getElementById('form-file-input');
     if (fileInput) {
-        fileInput.addEventListener('change', function() {
+        fileInput.addEventListener('change', function () {
             const file = this.files[0];
             if (!file) return;
 
@@ -322,7 +338,7 @@ document.addEventListener('DOMContentLoaded', () => {
 // --- 處理購物清單的儲存 (包含圖片上傳與文字資料) ---
 async function saveShoppingItem(event) {
     event.preventDefault(); // 防止表單送出刷新頁面
-    
+
     const btnSave = document.getElementById('btn-save');
     btnSave.textContent = '⏳ 儲存中...';
     btnSave.disabled = true;
@@ -343,7 +359,7 @@ async function saveShoppingItem(event) {
                 .upload(filePath, file);
 
             if (uploadError) throw uploadError;
-            
+
             // 取得圖片公開網址
             const { data: { publicUrl } } = supabaseClient.storage.from('images').getPublicUrl(filePath);
             imageUrl = publicUrl;
@@ -362,7 +378,7 @@ async function saveShoppingItem(event) {
         };
 
         const id = document.getElementById('form-id').value;
-        
+
         // 如果有 ID 代表是編輯，沒有 ID 代表是新增
         if (id) {
             await supabaseClient.from('shopping_list').update(itemData).eq('id', id);
@@ -386,7 +402,7 @@ async function saveShoppingItem(event) {
 async function deleteShoppingItem() {
     const id = document.getElementById('form-id').value;
     if (!id) return;
-    
+
     if (confirm('確定要刪除這個品項嗎？')) {
         const { error } = await supabaseClient.from('shopping_list').delete().eq('id', id);
         if (!error) {
@@ -423,7 +439,7 @@ async function saveReceiptDesc() {
 
     // 更新資料庫中的 description 欄位
     const { error } = await supabaseClient.from('receipts').update({ description: desc }).eq('id', id);
-    
+
     btn.textContent = originalText;
     btn.disabled = false;
 
@@ -442,7 +458,7 @@ async function deleteReceipt() {
     if (confirm('確定要刪除這張照片與紀錄嗎？\n(此動作無法復原喔！)')) {
         // 從資料庫刪除該筆資料
         const { error } = await supabaseClient.from('receipts').delete().eq('id', id);
-        
+
         if (!error) {
             closeReceiptModal();
             fetchReceipts(); // 重新載入畫面
@@ -450,4 +466,108 @@ async function deleteReceipt() {
             alert('刪除失敗：' + error.message);
         }
     }
+}
+// --- 📄 旅遊文件管理 (機票/住宿/保險) ---
+
+// 打開 Modal 並抓取資料
+async function openDocModal(category) {
+    const modal = document.getElementById('doc-modal');
+    const title = document.getElementById('doc-modal-title');
+    const categoryInput = document.getElementById('doc-category');
+    
+    const titles = {
+        'flight': '航班相關文件',
+        'stay': '住宿憑證/地圖',
+        'insurance': '電子保單/緊急聯絡'
+    };
+    
+    title.textContent = titles[category] || '相關文件';
+    categoryInput.value = category;
+    modal.classList.remove('hidden');
+    
+    fetchDocuments(category);
+}
+
+function closeDocModal() {
+    document.getElementById('doc-modal').classList.add('hidden');
+}
+
+// 抓取文件清單
+async function fetchDocuments(category) {
+    const listContainer = document.getElementById('doc-list');
+    listContainer.innerHTML = '<p class="text-center text-gray-400 text-[10px] py-4">載入中...</p>';
+
+    const { data, error } = await supabaseClient
+        .from('travel_docs') // 對應你截圖中的資料表名稱
+        .select('*')
+        .eq('category', category)
+        .order('created_at', { ascending: false });
+
+    if (error) {
+        listContainer.innerHTML = `<p class="text-red-500 text-[10px] py-4">抓取失敗</p>`;
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        listContainer.innerHTML = '<p class="text-center text-gray-400 text-[10px] py-4">目前尚無文件</p>';
+        return;
+    }
+
+    listContainer.innerHTML = data.map(doc => `
+        <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-sm mb-2">
+            <a href="${doc.file_url}" target="_blank" class="text-xs text-slate-700 hover:text-blue-600 truncate flex-1 mr-2 underline">
+                📄 ${doc.file_name || '查看文件'}
+            </a>
+            <button onclick="deleteDocument('${doc.id}', '${category}')" class="text-gray-400 hover:text-red-500 text-[10px]">
+                刪除
+            </button>
+        </div>
+    `).join('');
+}
+
+// 上傳文件
+async function uploadDocument(input) {
+    const file = input.files[0];
+    const category = document.getElementById('doc-category').value;
+    if (!file) return;
+
+    const btn = document.getElementById('btn-upload-doc');
+    btn.innerHTML = '⏳ 上傳中...';
+    btn.disabled = true;
+
+    try {
+        const fileExt = file.name.split('.').pop();
+        const fileName = `${category}_${Date.now()}.${fileExt}`;
+        const filePath = `documents/${fileName}`;
+
+        // 1. 上傳至 Storage
+        const { error: uploadError } = await supabaseClient.storage
+            .from('images')
+            .upload(filePath, file);
+
+        if (uploadError) throw uploadError;
+
+        // 2. 取得連結
+        const { data: { publicUrl } } = supabaseClient.storage.from('images').getPublicUrl(filePath);
+
+        // 3. 存入 travel_docs 表
+        const { error: dbError } = await supabaseClient.from('travel_docs').insert([
+            { category, file_url: publicUrl, file_name: file.name }
+        ]);
+
+        if (dbError) throw dbError;
+        fetchDocuments(category);
+    } catch (error) {
+        alert('上傳失敗：' + error.message);
+    } finally {
+        btn.innerHTML = '＋ 上傳新文件 (PDF / 圖片)';
+        btn.disabled = false;
+        input.value = '';
+    }
+}
+
+async function deleteDocument(id, category) {
+    if (!confirm('確定要刪除此文件嗎？')) return;
+    const { error } = await supabaseClient.from('travel_docs').delete().eq('id', id);
+    if (!error) fetchDocuments(category);
 }
