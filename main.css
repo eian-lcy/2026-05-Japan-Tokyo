@@ -70,7 +70,7 @@ input[type=number] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid var(--accent-color);
+    border: 2px solid var(--accent-color);
     color: var(--accent-color);
     background-color: transparent;
     border-radius: 9999px;
