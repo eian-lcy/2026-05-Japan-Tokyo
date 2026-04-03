@@ -19,34 +19,64 @@ async function fetchExpenses() {
 }
 
 // --- 2. 核心計算邏輯 (含整趟總花費) ---
+// --- 修正版計算邏輯：整合全案結清與個人結清 ---
 function calculateSettlement() {
+    // 1. 初始化所有需要的變數
     let paid = { JPY: { '賴': 0, '李': 0, '林': 0 }, TWD: { '賴': 0, '李': 0, '林': 0 } };
     let share = { JPY: { '賴': 0, '李': 0, '林': 0 }, TWD: { '賴': 0, '李': 0, '林': 0 } };
     let history = { '賴': [], '李': [], '林': [] };
-    let absoluteShare = { JPY: { '賴': 0, '李': 0, '林': 0 }, TWD: { '賴': 0, '李': 0, '林': 0 } };
+    let absoluteShare = { JPY: { '賴': 0, '李': 0, '林': 0 }, TWD: { '賴': 0, '李': 0, '林': 0 } }; // 👈 確保這行存在
 
     currentData.forEach(exp => {
         const amt = parseFloat(exp.total_amount);
-        // 計入個人實際總花費 (無論是否結清)
+        const isAllSettled = exp.is_settled; // 總結清狀態
+
+        // 2. 紀錄所有歷史花費 (無論是否結清，皆計入「個人實際總花費」統計)
         for (const [person, p_amt] of Object.entries(exp.split_details)) {
             if (persons.includes(person)) {
-                absoluteShare[exp.currency][person] += p_amt;
-                history[person].push({ desc: exp.description || '消費', currency: exp.currency, paidBy: exp.payer, myShare: p_amt, is_settled: exp.is_settled });
+                absoluteShare[exp.currency][person] += p_amt; //
+                
+                // 判斷個人在明細中是否顯示為已結清
+                const pNum = person === '賴' ? 'p1' : person === '李' ? 'p2' : 'p3';
+                const isPersonSettled = exp[`settled_${pNum}`];
+                
+                history[person].push({ 
+                    desc: exp.description || '消費', 
+                    currency: exp.currency, 
+                    paidBy: exp.payer, 
+                    myShare: p_amt, 
+                    is_settled: isAllSettled || isPersonSettled // 任一條件成立即顯示結清
+                });
             }
         }
-        // 進入債務計算 (僅限未結清)
-        if (!exp.is_settled) {
+
+        // 3. 債務計算：僅處理「全案未結清」的項目
+        if (!isAllSettled) {
+            // 付款人先墊了這筆總額
             paid[exp.currency][exp.payer] += amt;
-            for (const [person, p_amt] of Object.entries(exp.split_details)) {
-                share[exp.currency][person] += p_amt;
-            }
+
+            // 檢查每個人的應付份額，若個人已付則從付款人的應收中扣除
+            persons.forEach((p, index) => {
+                const pNum = index + 1;
+                const isPersonSettled = exp[`settled_p${pNum}`]; // 個人已付勾選
+                const personShare = exp.split_details[p] || 0;
+
+                if (isPersonSettled) {
+                    // 若此人已單獨付清給付款人，付款人的「應收」扣除此份額
+                    paid[exp.currency][exp.payer] -= personShare;
+                } else {
+                    // 尚未付清才進入債務池
+                    share[exp.currency][p] += personShare;
+                }
+            });
         }
     });
 
+    // 4. 渲染 UI
     renderExpenditureSummary(absoluteShare);
     renderPersonalSummary(paid, share, history);
 
-    // 計算轉帳步驟
+    // 5. 計算轉帳步驟 (沿用你原本的邏輯)
     let debts = [];
     if (settlementMode === 'separate') {
         debts.push(...getGreedyDebts('JPY', paid.JPY, share.JPY));
@@ -54,13 +84,15 @@ function calculateSettlement() {
     } else {
         const targetCurr = document.getElementById('merge-target').value;
         const rate = parseFloat(document.getElementById('merge-rate').value) || 0.21;
-        let mPaid = { '賴': 0, '李': 0, '林': 0 }; let mShare = { '賴': 0, '李': 0, '林': 0 };
+        let mPaid = { '賴': 0, '李': 0, '林': 0 }; 
+        let mShare = { '賴': 0, '李': 0, '林': 0 };
         persons.forEach(p => {
             if (targetCurr === 'TWD') {
-                mPaid[p] = paid.TWD[p] + (paid.JPY[p] * rate); mShare[p] = share.TWD[p] + (share.JPY[p] * rate);
+                mPaid[p] = paid.TWD[p] + (paid.JPY[p] * rate); 
+                mShare[p] = share.TWD[p] + (share.JPY[p] * rate);
             } else {
-                // mPaid[p] = paid.JPY[p] + (paid.TWD[p] / rate); mShare[p] = share.JPY[p] + (share.TWD[p] / rate);
-                mPaid[p] = paid.JPY[p] + (paid.TWD[p] * rate); mShare[p] = share.JPY[p] + (share.TWD[p] * rate);
+                mPaid[p] = paid.JPY[p] + (paid.TWD[p] * rate); 
+                mShare[p] = share.JPY[p] + (share.TWD[p] * rate);
             }
         });
         debts.push(...getGreedyDebts(targetCurr, mPaid, mShare));
@@ -250,6 +282,8 @@ function handleCurrencyChange() {
 // --- 6. 記帳 Modal 邏輯 ---
 function openModal(id = null) {
     const modal = document.getElementById('expense-modal');
+    const deleteBtn = document.getElementById('btn-delete');
+
     modal.classList.remove('hidden');
     initSplitInputs();
     if (id) {
@@ -266,24 +300,25 @@ function openModal(id = null) {
             document.getElementById(`check-${p}`).checked = hasShare;
             document.getElementById(`input-${p}`).value = hasShare ? (item.split_method === 'ratio' ? (item.split_details[p] / item.total_amount * 100).toFixed(2) : item.split_details[p]) : '';
         });
+
+        // 顯示刪除按鈕並修改標題
+        if (deleteBtn) deleteBtn.classList.remove('hidden');
+        document.getElementById('modal-title').textContent = '編輯紀錄';
+
     } else {
         document.getElementById('form-id').value = '';
         document.getElementById('form-amount').value = '';
+        document.getElementById('form-desc').value = ''; // 確保說明被清空
         document.getElementById('form-is-settled').checked = false;
+        document.getElementById('settled-check-賴').checked = item.settled_p1 || false;
+        document.getElementById('settled-check-李').checked = item.settled_p2 || false;
+        document.getElementById('settled-check-林').checked = item.settled_p3 || false;
         splitEqually();
-    }
-}
 
-function initSplitInputs() {
-    const container = document.getElementById('split-inputs-container');
-    container.innerHTML = persons.map(p => `
-        <div class="flex items-center justify-between p-2.5 border rounded-lg mb-2">
-            <label class="flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" id="check-${p}" checked onchange="calculateSplit()" class="w-4 h-4">
-                <span class="text-sm font-bold">${p}</span>
-            </label>
-            <input type="number" id="input-${p}" oninput="calculateSplit()" class="w-20 text-right border-b font-bold">
-        </div>`).join('');
+        // 隱藏刪除按鈕並修改標題
+        if (deleteBtn) deleteBtn.classList.add('hidden');
+        document.getElementById('modal-title').textContent = '新增紀錄';
+    }
 }
 
 function calculateSplit() {
@@ -313,16 +348,19 @@ function splitEqually() {
     calculateSplit();
 }
 
+// 修改後的 saveExpense
 async function saveExpense() {
     const total = parseFloat(document.getElementById('form-amount').value) || 0;
     const mode = document.getElementById('form-split-mode').value;
     let details = {};
+    
     persons.forEach(p => {
         if (document.getElementById(`check-${p}`).checked) {
-            const val = parseFloat(document.getElementById(`input-${p}`).value) || 0;
+            const val = parseFloat(document.getElementById('input-' + p).value) || 0;
             details[p] = mode === 'ratio' ? (total * val / 100) : val;
         }
     });
+
     const data = {
         date: document.getElementById('form-date').value,
         description: document.getElementById('form-desc').value,
@@ -331,10 +369,17 @@ async function saveExpense() {
         payer: document.querySelector('input[name="payer"]:checked').value,
         split_method: mode,
         split_details: details,
-        is_settled: document.getElementById('form-is-settled').checked
+        // 同時儲存總結清與個人結清
+        is_settled: document.getElementById('form-is-settled').checked,
+        settled_p1: document.getElementById('settled-check-賴').checked,
+        settled_p2: document.getElementById('settled-check-李').checked,
+        settled_p3: document.getElementById('settled-check-林').checked
     };
+
     const id = document.getElementById('form-id').value;
-    if (id) await supabaseClient.from('expenses').update(data).eq('id', id); else await supabaseClient.from('expenses').insert([data]);
+    if (id) await supabaseClient.from('expenses').update(data).eq('id', id); 
+    else await supabaseClient.from('expenses').insert([data]);
+
     document.getElementById('expense-modal').classList.add('hidden');
     fetchExpenses();
 }
@@ -358,6 +403,17 @@ function renderExpenses() {
     });
 }
 
+// 範例：計算林(Person 3) 的總欠款
+async function calculateLinBalance() {
+    const { data, error } = await supabaseClient
+        .from('shopping_list')
+        .select('price, qty_person3')
+        .eq('settled_p3', false); // ⚡️ 關鍵：只計算「未結清」的項目
+
+    const unpaidTotal = data.reduce((sum, item) => sum + (item.price * item.qty_person3), 0);
+    // 這樣一來，只要你在購物清單勾選了「林已結清」，這裡的 954 元就會自動消失
+}
+
 function closeModal() { document.getElementById('expense-modal').classList.add('hidden'); }
 async function deleteExpense() { if (confirm('確定刪除？')) { await supabaseClient.from('expenses').delete().eq('id', document.getElementById('form-id').value); closeModal(); fetchExpenses(); } }
 supabaseClient.channel('split-db').on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => fetchExpenses()).subscribe();
@@ -366,7 +422,7 @@ supabaseClient.channel('split-db').on('postgres_changes', { event: '*', schema: 
 function exportToImage() {
     const exportArea = document.getElementById('export-area');
     const exportBtn = document.querySelector('button[onclick="exportToImage()"]');
-    
+
     // 如果找不到要匯出的區塊，就停止執行
     if (!exportArea) {
         alert('找不到結算明細區塊！');
@@ -382,7 +438,7 @@ function exportToImage() {
     // 2. 呼叫 html2canvas 進行截圖
     // 設定 scale: 2 可以讓匯出的圖片解析度變高，在手機上放大看文字才不會模糊
     html2canvas(exportArea, {
-        scale: 2, 
+        scale: 2,
         backgroundColor: '#FAFAFA', // 確保背景顏色與你的網頁一致
         useCORS: true // 確保字體或跨域圖片能正常渲染
     }).then(canvas => {
@@ -395,7 +451,7 @@ function exportToImage() {
         // 自動帶上當天日期的檔名
         const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
         link.download = `TOKYO2026_結算明細_${today}.png`;
-        
+
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
@@ -409,4 +465,26 @@ function exportToImage() {
         exportBtn.disabled = false;
         exportBtn.classList.remove('opacity-70', 'cursor-not-allowed');
     });
+}
+
+// 修改後的 initSplitInputs
+function initSplitInputs() {
+    const container = document.getElementById('split-inputs-container');
+    container.innerHTML = persons.map((p, index) => {
+        const pNum = index + 1; // 產生 p1, p2, p3
+        return `
+        <div class="flex items-center justify-between p-2.5 border rounded-lg mb-2 bg-white">
+            <div class="flex flex-col gap-1">
+                <label class="flex items-center gap-2 cursor-pointer">
+                    <input type="checkbox" id="check-${p}" checked onchange="calculateSplit()" class="w-4 h-4">
+                    <span class="text-sm font-bold text-slate-800">${p}</span>
+                </label>
+                <label class="flex items-center gap-1.5 cursor-pointer ml-6">
+                    <input type="checkbox" id="settled-check-${p}" class="w-3.5 h-3.5 accent-green-600">
+                    <span class="text-[10px] text-gray-500 font-bold">已付清</span>
+                </label>
+            </div>
+            <input type="number" id="input-${p}" oninput="calculateSplit()" class="w-24 text-right border-b font-bold text-slate-800 focus:border-slate-800 outline-none">
+        </div>`;
+    }).join('');
 }
