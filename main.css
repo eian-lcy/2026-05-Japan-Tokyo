@@ -85,13 +85,30 @@ input[type=number] {
     /* 確保按鈕文字不換行 */
 }
 
-.btn-pill-nav:hover {
-    background-color: var(--accent-color);
-    color: #ffffff;
-    transform: translateY(-1px);
-    /* 輕微浮動感 */
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    /* 已修正：原為 shadow，應為 box-shadow */
+/* --- 藥丸形導航按鈕樣式 --- */
+.btn-pill-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    
+    /* 邊框設定 */
+    border: 1px solid var(--accent-color); 
+    
+    /* 💡 加入這兩行：清除 iOS/Android 原生按鈕樣式，強制顯示自訂邊框 */
+    -webkit-appearance: none;
+    appearance: none;
+
+    color: var(--accent-color);
+    background-color: transparent;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 10px;
+    margin-left: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    vertical-align: middle;
+    white-space: nowrap;
 }
 
 .btn-pill-nav:active {
