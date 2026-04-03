@@ -1,49 +1,27 @@
-/* 1. 字體與基礎設定 */
+/* =========================================
+   1. 變數與基礎設定 (Variables & Base)
+   ========================================= */
 @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;400;500;700&display=swap');
+
+:root {
+    /* 提取主要色彩為變數，方便未來統一維護 */
+    --bg-main: #FAFAFA;
+    --text-main: #1e293b;
+    --text-muted: #94a3b8;
+    --accent-color: #1e293b;
+}
 
 body {
     font-family: 'Noto Sans TC', sans-serif;
-    background-color: #FAFAFA;
-    color: #1e293b;
+    background-color: var(--bg-main);
+    color: var(--text-main);
+    margin: 0;
+    padding: 0;
 }
 
-/* 2. 通用動畫與溢出處理 */
-/* 手風琴與分帳明細展開動畫 */
-.transition-max-height {
-    transition: max-height 0.4s ease-in-out;
-}
-
-/* 隱藏原生捲軸（用於購物分類橫向滑動） */
-.no-scrollbar::-webkit-scrollbar {
-    display: none;
-}
-
-.no-scrollbar {
-    -ms-overflow-style: none;
-    scrollbar-width: none;
-}
-
-/* 文字裁切（收據備註預覽） */
-.line-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-
-/* 3. 分帳頁面專用樣式 */
-/* 分帳頁頂部頁籤切換 */
-.tab-active {
-    border-bottom: 2px solid #1e293b;
-    color: #1e293b;
-    font-weight: 700;
-}
-
-.tab-inactive {
-    color: #94a3b8;
-    border-bottom: 2px solid transparent;
-}
-
+/* =========================================
+   2. 表單與輸入框優化 (Forms)
+   ========================================= */
 /* 隱藏數字輸入框的上下箭頭（讓匯率輸入更美觀） */
 input[type=number]::-webkit-inner-spin-button,
 input[type=number]::-webkit-outer-spin-button {
@@ -51,41 +29,159 @@ input[type=number]::-webkit-outer-spin-button {
     margin: 0;
 }
 
-/* 4. 購物清單分類顏色（對應 script.js 中的 location） */
-/* 若 Tailwind class 無法完全覆蓋時的補強 */
+input[type=number] {
+    -moz-appearance: textfield;
+    /* 補強 Firefox 瀏覽器支援 */
+}
+
+/* =========================================
+   3. 佈局與區塊設定 (Layout & Sections)
+   ========================================= */
+/* 確保標題的捲動邊距足夠，避開頂部的 Sticky Header */
+#shopping {
+    scroll-margin-top: 110px;
+}
+
+/* 為購物清單的圖片容器設定固定寬高比，預留空間避免載入時畫面跳動 */
+#shopping-list-container .w-12.h-12 {
+    aspect-ratio: 1 / 1;
+    background-color: #f3f4f6;
+    /* 載入前的佔位背景色 */
+}
+
+/* =========================================
+   4. 元件樣式 (Components)
+   ========================================= */
+
+/* --- 分帳頁頂部頁籤切換 --- */
+.tab-active {
+    border-bottom: 2px solid var(--accent-color);
+    color: var(--accent-color);
+    font-weight: 700;
+}
+
+.tab-inactive {
+    color: var(--text-muted);
+    border-bottom: 2px solid transparent;
+}
+
+/* --- 藥丸形導航按鈕樣式 --- */
+.btn-pill-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid var(--accent-color);
+    color: var(--accent-color);
+    background-color: transparent;
+    border-radius: 9999px;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 2px 10px;
+    margin-left: 6px;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+    vertical-align: middle;
+    white-space: nowrap;
+    /* 確保按鈕文字不換行 */
+}
+
+.btn-pill-nav:hover {
+    background-color: var(--accent-color);
+    color: #ffffff;
+    transform: translateY(-1px);
+    /* 輕微浮動感 */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    /* 已修正：原為 shadow，應為 box-shadow */
+}
+
+.btn-pill-nav:active {
+    transform: translateY(0);
+}
+
+/* =========================================
+   5. 購物清單分類標籤 (Categories)
+   取代原有的 Tailwind @apply，轉為純 CSS 獨立渲染
+   ========================================= */
 .category-muji {
-    @apply bg-red-50 text-red-700 border-red-100;
+    background-color: #fef2f2;
+    color: #b91c1c;
+    border: 1px solid #fee2e2;
 }
 
 .category-drugstore {
-    @apply bg-blue-50 text-blue-700 border-blue-100;
+    background-color: #eff6ff;
+    color: #1d4ed8;
+    border: 1px solid #dbeafe;
 }
 
 .category-donki {
-    @apply bg-yellow-50 text-yellow-700 border-yellow-100;
+    background-color: #fefce8;
+    color: #a16207;
+    border: 1px solid #fef9c3;
 }
 
 .category-3coins {
-    @apply bg-green-50 text-green-700 border-green-100;
+    background-color: #f0fdf4;
+    color: #15803d;
+    border: 1px solid #dcfce7;
 }
 
 .category-fashion {
-    @apply bg-purple-50 text-purple-700 border-purple-100;
+    background-color: #faf5ff;
+    color: #7e22ce;
+    border: 1px solid #f3e8ff;
 }
 
 .category-convenience {
-    @apply bg-indigo-50 text-indigo-700 border-indigo-100;
+    background-color: #eef2ff;
+    color: #4338ca;
+    border: 1px solid #e0e7ff;
 }
 
 .category-souvenir {
-    @apply bg-orange-50 text-orange-700 border-orange-100;
+    background-color: #fff7ed;
+    color: #c2410c;
+    border: 1px solid #ffedd5;
 }
 
 .category-other {
-    @apply bg-gray-50 text-gray-700 border-gray-100;
+    background-color: #f9fafb;
+    color: #374151;
+    border: 1px solid #f3f4f6;
 }
 
-/* 5. 手機版優化 */
+/* =========================================
+   6. 通用工具與動畫 (Utilities)
+   ========================================= */
+/* 手風琴與分帳明細展開動畫 */
+.transition-max-height {
+    transition: max-height 0.4s ease-in-out;
+}
+
+/* 隱藏原生捲軸（用於購物分類橫向滑動） */
+.no-scrollbar {
+    -ms-overflow-style: none;
+    /* IE 與 Edge */
+    scrollbar-width: none;
+    /* Firefox */
+}
+
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+    /* Chrome, Safari, Opera */
+}
+
+/* 文字裁切（收據備註預覽限制顯示兩行） */
+.line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* =========================================
+   7. 響應式設定 (Media Queries)
+   ========================================= */
 @media (max-width: 640px) {
 
     /* 讓 Modal 在手機上以底部抽屜形式呈現 */
