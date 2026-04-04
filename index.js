@@ -57,29 +57,6 @@ function initLuggageStorage() {
 // --- 購物清單 (類別分類) ---
 let currentListData = [];
 
-// async function fetchShoppingList(category = null) {
-//     // 如果點擊已選中的分類，則取消篩選（設為 null）
-//     if (currentActiveCategory === category) {
-//         category = null;
-//     }
-
-//     currentActiveCategory = category;
-
-//     let query = supabaseClient.from('shopping_list').select('*').order('created_at', { ascending: false });
-//     if (category) {
-//         query = query.eq('location', category);
-//     }
-
-//     const { data, error } = await query;
-//     if (error) {
-//         console.error('抓取失敗:', error.message);
-//         return;
-//     }
-
-//     renderShoppingList(data);
-//     updateFilterUI(category); // 👈 確保這裡傳入的是最新的 category (或 null)
-// }
-
 // --- 渲染購物清單 (加入圖片縮圖與單列明細) ---
 function renderShoppingList(items) {
     const container = document.getElementById('shopping-list-container');
@@ -92,6 +69,27 @@ function renderShoppingList(items) {
         container.innerHTML = '<p class="text-center py-10 text-gray-400">目前此分類下沒有物品</p>';
         return;
     }
+
+    // 💡 統一使用這個成員 HTML 產生器，整合「結清」與「優先級 (🔥👀)」
+    const getMemberHtml = (name, qty, isSettled, field, id, priority) => {
+        if (qty <= 0) return '';
+
+        const isChecked = isSettled ? 'checked' : '';
+        const textStyle = isSettled ? 'line-through text-gray-400 font-normal' : 'text-slate-800 font-bold';
+
+        // 根據 priority 顯示圖示
+        const priorityIcon = priority === 1 ? '<span class="text-red-500 mr-0.5">🔥</span>' :
+            priority === 2 ? '<span class="text-blue-500 mr-0.5">👀</span>' : '';
+
+        return `
+            <label class="flex items-center gap-1 cursor-pointer ${textStyle}">
+                <input type="checkbox" ${isChecked} 
+                    onchange="event.stopPropagation(); toggleSettled('${id}', '${field}', this.checked)"
+                    class="w-3.5 h-3.5 accent-slate-800 rounded border-gray-300">
+                <span class="text-[11px] flex items-center">${priorityIcon}${name} ${qty}</span>
+            </label>
+        `;
+    };
 
     const catColors = {
         'MUJI': 'bg-red-50 text-red-700 border-red-100',
@@ -113,28 +111,11 @@ function renderShoppingList(items) {
         const total = q1 + q2 + q3;
         const colorClass = catColors[item.location] || 'bg-gray-50 text-gray-600';
 
-        // --- 分帳結清小工具函式 ---
-        const getSettledHtml = (name, qty, isSettled, field, id) => {
-            if (qty <= 0) return '';
+        // 呼叫外部定義的 getMemberHtml
+        const b1 = getMemberHtml('賴', q1, item.settled_p1, 'settled_p1', item.id, item.priority_p1);
+        const b2 = getMemberHtml('李', q2, item.settled_p2, 'settled_p2', item.id, item.priority_p2);
+        const b3 = getMemberHtml('林', q3, item.settled_p3, 'settled_p3', item.id, item.priority_p3);
 
-            const isChecked = isSettled ? 'checked' : '';
-            // 結清時加上刪除線與灰色樣式
-            const textStyle = isSettled ? 'line-through text-gray-400 font-normal' : 'text-slate-800 font-bold';
-
-            return `
-        <label class="flex items-center gap-1.5 cursor-pointer ${textStyle}">
-            <input type="checkbox" ${isChecked} 
-                onchange="event.stopPropagation(); toggleSettled('${id}', '${field}', this.checked)"
-                class="w-3.5 h-3.5 accent-slate-800 rounded border-gray-300">
-            <span class="text-[11px]">${name} ${qty}</span>
-        </label>
-    `;
-        };
-
-        // 確保有抓到這三個人的資料
-        const b1 = getSettledHtml('賴', item.qty_person1 || 0, item.settled_p1, 'settled_p1', item.id);
-        const b2 = getSettledHtml('李', item.qty_person2 || 0, item.settled_p2, 'settled_p2', item.id);
-        const b3 = getSettledHtml('林', item.qty_person3 || 0, item.settled_p3, 'settled_p3', item.id);
         let breakdownHtml = [b1, b2, b3].filter(h => h !== '').join('<span class="text-gray-200 mx-1">|</span>');
         if (!breakdownHtml) breakdownHtml = '<span class="text-[10px] text-gray-400">尚未分配</span>';
 
@@ -147,14 +128,15 @@ function renderShoppingList(items) {
                </div>`
             : '';
 
-        // 3. 組合 HTML (精緻卡片版)
+        // 3. 組合 HTML (修正了標籤空格與事件放置位置)
         container.innerHTML += `
-            <div class="bg-white border border-gray-100 shadow-sm p-3 flex flex-col transition hover:shadow-md mb-2">
+            <div class="shopping-card bg-white border border-gray-100 shadow-sm p-3 flex flex-col transition hover:shadow-md mb-2"
+                 ontouchstart="startLongPress(event, '${item.id}')" 
+                 ontouchend="cancelLongPress()"
+                 oncontextmenu="handleRightClick(event, '${item.id}')">
                 
                 <div class="flex items-start gap-3">
-                    
                     ${imgHtml}
-                    
                     <div class="flex-1 min-w-0 cursor-pointer" onclick="openModal('${itemStr}')">
                         <div class="font-bold text-slate-800 text-sm md:text-base leading-tight">
                             ${item.item_name} 
@@ -179,20 +161,98 @@ function renderShoppingList(items) {
                 ${item.remark ? `<div class="mt-2 pt-2 border-t border-gray-50 text-xs text-gray-500 cursor-pointer" onclick="openModal('${itemStr}')">📝 ${item.remark}</div>` : ''}
             </div>`;
     });
-    // --- 關鍵：已移除下方會造成報錯的舊版 listContainer 渲染邏輯 ---
+}
+let longPressTimer;
+function startLongPress(e, itemId) {
+    const touch = e.touches[0];
+    const x = touch.clientX;
+    const y = touch.clientY;
+
+    longPressTimer = setTimeout(() => {
+        showContextMenu(x, y, itemId);
+    }, 600); // 0.6秒視為長按
+}
+
+function cancelLongPress() {
+    clearTimeout(longPressTimer);
+}
+
+async function showContextMenu(x, y, itemId) {
+    const menu = document.getElementById('context-menu');
+    if (!menu) return;
+    // 根據 itemId 抓取該品項資料 (略過，假設已有)
+
+    menu.innerHTML = `
+            <div class="px-4 py-2 text-[10px] text-gray-400 font-bold">設定購買優先級</div>
+                ${['賴', '李', '林'].map((name, i) => `
+            <div class="menu-item" onclick="quickUpdatePriority('${itemId}', 'p${i + 1}', 1)">
+                <span>${name}：🔥 必買</span>
+            </div>
+            <div class="menu-item" onclick="quickUpdatePriority('${itemId}', 'p${i + 1}', 2)">
+                <span>${name}：👀 看看</span>
+            </div>
+            ${i < 2 ? '<div class="menu-divider"></div>' : ''}
+        `).join('')
+        }
+        `;
+
+    menu.style.left = `${x} px`;
+    menu.style.top = `${y} px`;
+    menu.style.display = 'block';
+
+    // 💡 聰明的邊界檢查：防止選單超出螢幕右側或下方
+    const menuWidth = menu.offsetWidth;
+    const menuHeight = menu.offsetHeight;
+    const windowWidth = window.innerWidth;
+    const windowHeight = window.innerHeight;
+
+    let finalX = x;
+    let finalY = y;
+
+    if (x + menuWidth > windowWidth) finalX = windowWidth - menuWidth - 10;
+    if (y + menuHeight > windowHeight) finalY = windowHeight - menuHeight - 10;
+
+    menu.style.left = `${finalX}px`;
+    menu.style.top = `${finalY}px`;
+
+    // 💡 點擊選單以外的地方就關閉 (電腦端常用體驗)
+    const closeMenu = () => {
+        menu.style.display = 'none';
+        document.removeEventListener('click', closeMenu);
+    };
+    // 延遲一點點監聽，避免本次右鍵點擊立刻觸發關閉
+    setTimeout(() => document.addEventListener('click', closeMenu), 10);
+
+    // 點擊其他地方關閉選單
+    document.addEventListener('click', () => menu.style.display = 'none', { once: true });
+}
+
+// 快速更新資料庫
+async function quickUpdatePriority(id, person, status) {
+    const field = `priority_${person}`;
+    await supabaseClient.from('shopping_list').update({ [field]: status }).eq('id', id);
+    // applyFilters() 自動重繪畫面
 }
 
 // 建議的狀態結構
 let filters = {
-    locations: new Set(), // 儲存多個地點
+    location: null, // 儲存單一地點
     people: new Set()      // 儲存多個人員欄位
 };
 
 async function applyFilters() {
     let query = supabaseClient.from('shopping_list').select('*');
-    if (filters.locations.size > 0) query = query.in('location', Array.from(filters.locations));
+
+    // 地點篩選：💡 改回單純的 eq 查詢
+    if (filters.location) {
+        query = query.eq('location', filters.location);
+    }
+
+    // 人員篩選：維持多選 or 查詢
     if (filters.people.size > 0) {
-        const orConditions = Array.from(filters.people).map(p => `${p}.gt.0`).join(',');
+        const orConditions = Array.from(filters.people)
+            .map(p => `${p}.gt.0`)
+            .join(',');
         query = query.or(orConditions);
     }
 
@@ -201,24 +261,21 @@ async function applyFilters() {
     if (!error) {
         renderShoppingList(data);
         updateFilterUI();
-        // 💡 返回一個成功的信號
-        return true;
     }
-    return false;
 }
 
 // --- 3. 新增按鈕觸發函式 ---
 
 // 處理地點按鈕點擊
 function toggleLocationFilter(cat) {
-    if (filters.locations.has(cat)) {
-        filters.locations.delete(cat); // 已存在則移除
+    if (cat === null) {
+        filters.location = null; // 💡 點擊「全部」時直接設為 null
     } else {
-        filters.locations.add(cat);    // 不存在則加入
+        // 單選切換邏輯
+        filters.location = (filters.location === cat) ? null : cat;
     }
     applyFilters();
 }
-
 // 處理個人按鈕點擊
 function togglePersonFilter(field) {
     if (!field) {
@@ -257,35 +314,41 @@ function toggleExpandShopping() {
 
 function updateFilterUI() {
     const buttons = document.querySelectorAll('#shopping button[onclick]');
+
     buttons.forEach(btn => {
         const attr = btn.getAttribute('onclick');
         let isSelected = false;
 
-        // 檢查地點按鈕是否在 Set 中
-        filters.locations.forEach(loc => {
-            if (attr.includes(`toggleLocationFilter('${loc}')`)) isSelected = true;
-        });
-
-        // 檢查人員按鈕是否在 Set 中
-        filters.people.forEach(p => {
-            if (attr.includes(`togglePersonFilter('${p}')`)) isSelected = true;
-        });
-
-        // 「全部」按鈕：當地點與個人都沒選時亮起
-        if (filters.locations.size === 0 && filters.people.size === 0 && (attr.includes('null') || attr.includes('applyFilters'))) {
-            isSelected = true;
+        // --- 處理商店地點按鈕 ---
+        if (attr.includes('toggleLocationFilter')) {
+            // 如果 onclick 包含 null 且目前狀態也是 null
+            if (attr.includes('null')) {
+                if (filters.location === null) isSelected = true;
+            }
+            // 如果目前有選特定地點，且 onclick 包含該地點名稱
+            else if (filters.location && attr.includes(`'${filters.location}'`)) {
+                isSelected = true;
+            }
         }
 
-        // 特別處理「全體人員」按鈕
-        if (filters.people.size === 0 && attr.includes("togglePersonFilter(null)")) {
-            isSelected = true;
+        // --- 處理個人篩選按鈕 (保持 Set 邏輯) ---
+        if (attr.includes('togglePersonFilter')) {
+            if (attr.includes('null')) {
+                if (filters.people.size === 0) isSelected = true;
+            } else {
+                filters.people.forEach(p => {
+                    if (attr.includes(`'${p}'`)) isSelected = true;
+                });
+            }
         }
 
+        // 套用樣式
         btn.className = isSelected
             ? 'whitespace-nowrap px-4 py-2 rounded-full border border-slate-800 bg-slate-800 text-white text-xs font-bold transition'
             : 'whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-xs hover:border-slate-800 transition';
     });
 }
+
 // --- 收據紀錄 ---
 async function fetchReceipts() {
     const { data, error } = await supabaseClient.from('receipts').select('*').order('created_at', { ascending: false });
@@ -303,7 +366,7 @@ function renderReceipts(items) {
         const safeDesc = (item.description || '').replace(/'/g, "\\'");
 
         grid.innerHTML += `
-          <div class="flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-md transition">
+            <div class="flex flex-col bg-white border border-gray-200 shadow-sm hover:shadow-md transition" >
             <div class="aspect-square bg-gray-100 overflow-hidden cursor-zoom-in relative group" onclick="openLightbox('${item.image_url}', '${safeDesc}')">
               <img src="${item.image_url}" class="w-full h-full object-cover group-hover:opacity-90 transition">
               <div class="absolute inset-0 flex items-center justify-center bg-black/10 opacity-0 group-hover:opacity-100 transition">
@@ -316,7 +379,7 @@ function renderReceipts(items) {
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
                 </button>
             </div>
-          </div>`;
+          </div> `;
     });
 }
 
@@ -326,18 +389,18 @@ function renderPersonSettled(item, name, qtyField, settledField) {
 
     const isSettled = item[settledField];
     return `
-        <label class="flex items-center gap-1 cursor-pointer ${isSettled ? 'text-gray-400 line-through' : 'text-slate-700'}">
-            <input type="checkbox" 
-                ${isSettled ? 'checked' : ''} 
-                onchange="toggleSettled('${item.id}', '${settledField}', this.checked)"
-                class="rounded-sm border-gray-300">
-            ${name}: ${qty}
-        </label>
-    `;
+            <label class="flex items-center gap-1 cursor-pointer ${isSettled ? 'text-gray-400 line-through' : 'text-slate-700'}" >
+                <input type="checkbox"
+                    ${isSettled ? 'checked' : ''}
+                    onchange="toggleSettled('${item.id}', '${settledField}', this.checked)"
+                    class="rounded-sm border-gray-300">
+                    ${name}: ${qty}
+                </label>
+        `;
 }
 // 處理分帳結清勾選
 async function toggleSettled(id, field, isChecked) {
-    console.log(`更新結清狀態: ${id}, ${field} -> ${isChecked}`);
+    console.log(`更新結清狀態: ${id}, ${field} -> ${isChecked} `);
     const { error } = await supabaseClient
         .from('shopping_list')
         .update({ [field]: isChecked })
@@ -390,7 +453,47 @@ async function updateCheck(id, isChecked) {
         alert('更新狀態失敗');
     }
 }
+/** 
+* @param {number} p1 - 賴的優先級 (0, 1, 2)
+* @param {number} p2 - 李的優先級
+* @param {number} p3 - 林的優先級
+*/
+function updateDotStyles(p1, p2, p3) {
+    const pStatus = { p1, p2, p3 };
 
+    Object.keys(pStatus).forEach(key => {
+        const dot = document.getElementById(`dot-${key}`);
+        if (!dot) return; // 沒找到元素就跳過，防止報錯
+
+        const status = pStatus[key];
+        // 根據狀態套用 CSS 類別
+        // 0: 無色, 1: must-buy (紅), 2: looking (藍)
+        dot.className = 'priority-dot ' +
+            (status === 1 ? 'must-buy' : status === 2 ? 'looking' : '');
+    });
+}
+/**
+ * 💡 點擊 Modal 內的小圓圈時，循環切換狀態：0 -> 1 -> 2 -> 0
+ * @param {string} pKey - 哪個人 (p1, p2, 或 p3)
+ */
+function cyclePriority(pKey) {
+    // 1. 取得儲存數值的隱藏欄位 (0, 1, 2)
+    const hiddenInput = document.getElementById(`form-priority-${pKey}`);
+    if (!hiddenInput) return;
+
+    // 2. 計算下一個狀態
+    let currentVal = parseInt(hiddenInput.value) || 0;
+    let nextVal = (currentVal + 1) % 3;
+    hiddenInput.value = nextVal;
+
+    // 3. 取得畫面上的小圓圈元素並立即更新顏色
+    const dot = document.getElementById(`dot-${pKey}`);
+    if (dot) {
+        // 根據數值切換 CSS Class
+        const classes = nextVal === 1 ? 'must-buy' : nextVal === 2 ? 'looking' : '';
+        dot.className = `priority-dot ${classes}`;
+    }
+}
 // --- 補上完整的 Modal 切換與編輯功能 ---
 function openModal(itemStr = null) {
     const modal = document.getElementById('add-modal');
@@ -398,42 +501,110 @@ function openModal(itemStr = null) {
     const deleteBtn = document.getElementById('btn-delete');
     const title = document.getElementById('modal-title');
 
-    // 1. 每次打開前先重置所有欄位與圖片預覽
-    form.reset();
-    document.getElementById('form-id').value = '';
-    document.getElementById('form-image-url').value = '';
-    document.getElementById('img-preview-container').classList.add('hidden');
-    document.getElementById('form-img-preview').src = '';
+    if (form) form.reset();
 
+    // 1. 初始化預設值
+    let p1 = 0, p2 = 0, p3 = 0;
+    let imageUrl = '';
+
+    // 💡 取得 DOM 元素 (根據你提供的 id="form-name" 修改)
+    const elId = document.getElementById('form-id');
+    const elName = document.getElementById('form-name'); // 修正：對齊你的 HTML ID
+    const elSpec = document.getElementById('form-spec');
+    const elRemark = document.getElementById('form-remark');
+    const elLocation = document.getElementById('form-location');
+    const elQty1 = document.getElementById('form-qty1');
+    const elQty2 = document.getElementById('form-qty2');
+    const elQty3 = document.getElementById('form-qty3');
+    const elImgUrl = document.getElementById('form-image-url');
+    const elImgPreview = document.getElementById('form-img-preview');
+    const elImgContainer = document.getElementById('img-preview-container');
+
+    // 預設狀態清理
+    if (elImgContainer) elImgContainer.classList.add('hidden');
+    if (elId) elId.value = '';
+
+    // 2. 判斷模式
     if (itemStr) {
-        // 2. 編輯模式：將剛剛傳進來的字串解析回物件
-        const item = JSON.parse(decodeURIComponent(itemStr));
+        try {
+            // 💡 統一使用 itemData 變數
+            const itemData = JSON.parse(decodeURIComponent(itemStr));
 
-        document.getElementById('form-id').value = item.id;
-        document.getElementById('form-name').value = item.item_name;
-        document.getElementById('form-spec').value = item.spec || '';
-        document.getElementById('form-remark').value = item.remark || '';
-        document.getElementById('form-qty1').value = item.qty_person1 || 0;
-        document.getElementById('form-qty2').value = item.qty_person2 || 0;
-        document.getElementById('form-qty3').value = item.qty_person3 || 0;
-        document.getElementById('form-location').value = item.location || '其他';
+            if (elId) elId.value = itemData.id || '';
+            if (elName) elName.value = itemData.item_name || ''; // 這裡讀取資料庫的 item_name 填入 form-name
+            if (elSpec) elSpec.value = itemData.spec || '';
+            if (elRemark) elRemark.value = itemData.remark || '';
+            if (elLocation) elLocation.value = itemData.location || '其他';
+            if (elQty1) elQty1.value = itemData.qty_person1 || 0;
+            if (elQty2) elQty2.value = itemData.qty_person2 || 0;
+            if (elQty3) elQty3.value = itemData.qty_person3 || 0;
 
-        // 如果原本有圖片，顯示預覽
-        if (item.image_url) {
-            document.getElementById('form-image-url').value = item.image_url;
-            document.getElementById('form-img-preview').src = item.image_url;
-            document.getElementById('img-preview-container').classList.remove('hidden');
+            p1 = itemData.priority_p1 || 0;
+            p2 = itemData.priority_p2 || 0;
+            p3 = itemData.priority_p3 || 0;
+            imageUrl = itemData.image_url || '';
+
+            title.textContent = '編輯品項';
+            if (deleteBtn) deleteBtn.classList.remove('hidden');
+        } catch (e) {
+            console.error('解析資料失敗:', e);
         }
-
-        title.textContent = '編輯品項';
-        if (deleteBtn) deleteBtn.classList.remove('hidden');
     } else {
-        // 3. 新增模式
+        // 新增模式
         title.textContent = '新增購物清單';
         if (deleteBtn) deleteBtn.classList.add('hidden');
     }
 
+    // 3. 處理圖片預覽
+    if (imageUrl && elImgUrl && elImgPreview && elImgContainer) {
+        elImgUrl.value = imageUrl;
+        elImgPreview.src = imageUrl;
+        elImgContainer.classList.remove('hidden');
+    }
+
+    // 4. 更新隱藏的優先級欄位 (重要：供 save 時讀取)
+    const fP1 = document.getElementById('form-priority-p1');
+    const fP2 = document.getElementById('form-priority-p2');
+    const fP3 = document.getElementById('form-priority-p3');
+    if (fP1) fP1.value = p1;
+    if (fP2) fP2.value = p2;
+    if (fP3) fP3.value = p3;
+
+    // 5. 更新 UI 標籤上的小圓圈 (賴/李/林)
+    const updateLabelWithDot = (labelId, personName, status, personKey) => {
+        const labelEl = document.getElementById(labelId);
+        if (labelEl) {
+            const classes = status === 1 ? 'must-buy' : status === 2 ? 'looking' : '';
+            // 💡 標籤緊貼，移除空格
+            labelEl.innerHTML = `${personName}<span class="priority-dot ${classes}" id="dot-${personKey}" onclick="cyclePriority('${personKey}')"></span>`;
+        }
+    };
+
+    updateLabelWithDot('form-qty1-label', '賴', p1, 'p1');
+    updateLabelWithDot('form-qty2-label', '李', p2, 'p2');
+    updateLabelWithDot('form-qty3-label', '林', p3, 'p3');
+
+    updateModalLabels(p1, p2, p3);
+    // 最後顯示 Modal
     modal.classList.remove('hidden');
+}
+
+// 輔助函式：更新 Modal 內的文字標籤
+function updateModalLabels(p1, p2, p3) {
+    const labels = [
+        { id: 'p1', name: '賴', val: p1 },
+        { id: 'p2', name: '李', val: p2 },
+        { id: 'p3', name: '林', val: p3 }
+    ];
+
+    labels.forEach(person => {
+        const labelEl = document.getElementById(`form-label-${person.id}`);
+        if (labelEl) {
+            const dotClass = person.val === 1 ? 'must-buy' : person.val === 2 ? 'looking' : '';
+            // 💡 確保這裡的 HTML 標籤沒有空格
+            labelEl.innerHTML = `${person.name}<span class="priority-dot ${dotClass}" id="dot-${person.id}" onclick="cyclePriority('${person.id}')"></span>`;
+        }
+    });
 }
 
 function closeModal() {
@@ -464,8 +635,8 @@ async function uploadReceipt(input) {
     try {
         // 1. 產生獨一無二的檔名，避免覆蓋
         const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-        const filePath = `receipts/${fileName}`;
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt} `;
+        const filePath = `receipts / ${fileName} `;
 
         // 2. 上傳圖片到 Supabase Storage (假設你的 Bucket 叫做 'images')
         const { error: uploadError } = await supabaseClient.storage
@@ -534,8 +705,8 @@ async function saveShoppingItem(event) {
         // 如果使用者有選新圖片，就先上傳圖片
         if (file) {
             const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
-            const filePath = `shopping/${fileName}`;
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt} `;
+            const filePath = `shopping / ${fileName} `;
 
             const { error: uploadError } = await supabaseClient.storage
                 .from('images')
@@ -557,7 +728,10 @@ async function saveShoppingItem(event) {
             qty_person2: parseInt(document.getElementById('form-qty2').value) || 0,
             qty_person3: parseInt(document.getElementById('form-qty3').value) || 0,
             location: document.getElementById('form-location').value,
-            image_url: imageUrl || null
+            image_url: imageUrl || null,
+            priority_p1: parseInt(document.getElementById('form-priority-p1').value) || 0,
+            priority_p2: parseInt(document.getElementById('form-priority-p2').value) || 0,
+            priority_p3: parseInt(document.getElementById('form-priority-p3').value) || 0
         };
 
         const id = document.getElementById('form-id').value;
@@ -687,7 +861,7 @@ async function fetchDocuments(category) {
         .order('created_at', { ascending: false });
 
     if (error) {
-        listContainer.innerHTML = `<p class="text-red-500 text-[10px] py-4">抓取失敗</p>`;
+        listContainer.innerHTML = `< p class="text-red-500 text-[10px] py-4" > 抓取失敗</p > `;
         return;
     }
 
@@ -697,7 +871,7 @@ async function fetchDocuments(category) {
     }
 
     listContainer.innerHTML = data.map(doc => `
-        <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-sm mb-2">
+            <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-sm mb-2" >
             <a href="${doc.file_url}" target="_blank" class="text-xs text-slate-700 hover:text-blue-600 truncate flex-1 mr-2 underline">
                 📄 ${doc.file_name || '查看文件'}
             </a>
@@ -705,7 +879,7 @@ async function fetchDocuments(category) {
                 刪除
             </button>
         </div>
-    `).join('');
+            `).join('');
 }
 
 // 上傳文件
@@ -720,8 +894,8 @@ async function uploadDocument(input) {
 
     try {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${category}_${Date.now()}.${fileExt}`;
-        const filePath = `documents/${fileName}`;
+        const fileName = `${category}_${Date.now()}.${fileExt} `;
+        const filePath = `documents / ${fileName} `;
 
         // 1. 上傳至 Storage
         const { error: uploadError } = await supabaseClient.storage
@@ -771,4 +945,16 @@ function openNoteModal() {
 }
 function closeNoteModal() {
     document.getElementById('note-modal').classList.add('hidden');
+}
+// 電腦端右鍵處理
+function handleRightClick(e, itemId) {
+    // 1. 擋掉瀏覽器預設的右鍵選單
+    e.preventDefault();
+
+    // 2. 取得點擊位置 (相對於視窗)
+    const x = e.clientX;
+    const y = e.clientY;
+
+    // 3. 顯示自定義選單 (沿用之前寫好的 showContextMenu)
+    showContextMenu(x, y, itemId);
 }
