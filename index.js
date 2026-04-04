@@ -18,9 +18,9 @@ async function navigateToShopping(type, value) {
     filters.people.clear();
     if (type === 'location' && value) filters.locations.add(value);
     else if (type === 'person' && value) filters.people.add(value);
-    
+
     // 2. 等待渲染完成
-    await applyFilters(); 
+    await applyFilters();
 
     // 3. 強制展開清單 (為了準確計算高度)
     const container = document.getElementById('shopping-list-container');
@@ -36,9 +36,9 @@ async function navigateToShopping(type, value) {
     setTimeout(() => {
         const target = document.getElementById('shopping');
         if (target) {
-            target.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start' 
+            target.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start'
             });
         }
     }, 50); // 50ms 的延遲肉眼無感，但對佈局穩定非常有效
@@ -150,31 +150,33 @@ function renderShoppingList(items) {
         // 3. 組合 HTML (精緻卡片版)
         container.innerHTML += `
             <div class="bg-white border border-gray-100 shadow-sm p-3 flex flex-col transition hover:shadow-md mb-2">
+                
                 <div class="flex items-start gap-3">
-                    <div class="pt-1">
-                        <input type="checkbox" ${item.is_checked ? 'checked' : ''} onchange="updateCheck('${item.id}', this.checked)" class="accent-slate-800 w-5 h-5 cursor-pointer">
-                    </div>
                     
                     ${imgHtml}
                     
-                    <div class="flex-1 cursor-pointer" onclick="openModal('${itemStr}')">
-                        <div class="font-bold text-slate-800 text-sm">${item.item_name} <span class="text-xs font-normal text-gray-400 ml-1">${item.spec || ''}</span></div>
-                        <div class="mt-1.5">
+                    <div class="flex-1 min-w-0 cursor-pointer" onclick="openModal('${itemStr}')">
+                        <div class="font-bold text-slate-800 text-sm md:text-base leading-tight">
+                            ${item.item_name} 
+                            <span class="text-xs font-normal text-gray-400 ml-1 whitespace-nowrap">${item.spec || ''}</span>
+                        </div>
+                        <div class="mt-2">
                             <span class="inline-block ${colorClass} px-2 py-0.5 rounded text-[10px] border font-medium">${item.location}</span>
                         </div>
                     </div>
+                </div>
 
-                    <div class="border-l border-gray-100 pl-3 shrink-0 flex flex-col items-end gap-1">
-                        <div class="flex items-end gap-1.5">
-                            <span class="text-[10px] font-bold text-slate-500 mb-0.5">總計</span>
-                            <span class="text-2xl font-extrabold text-slate-900 leading-none">${total}</span>
-                        </div>
-                        <div class="text-[11px] flex items-center whitespace-nowrap mt-0.5">
-                            ${breakdownHtml}
-                        </div>
+                <div class="mt-3 pt-2 border-t border-gray-100 flex items-center justify-between">
+                    <div class="text-[11px] flex items-center whitespace-nowrap overflow-x-auto no-scrollbar">
+                        ${breakdownHtml}
+                    </div>
+                    <div class="flex items-end gap-1.5 pl-3 shrink-0">
+                        <span class="text-[10px] font-bold text-slate-500 mb-0.5">總計</span>
+                        <span class="text-xl font-extrabold text-slate-900 leading-none">${total}</span>
                     </div>
                 </div>
-                ${item.remark ? `<div class="mt-2.5 pt-2 border-t border-gray-50 text-xs text-gray-500 cursor-pointer" onclick="openModal('${itemStr}')">📝 ${item.remark}</div>` : ''}
+
+                ${item.remark ? `<div class="mt-2 pt-2 border-t border-gray-50 text-xs text-gray-500 cursor-pointer" onclick="openModal('${itemStr}')">📝 ${item.remark}</div>` : ''}
             </div>`;
     });
     // --- 關鍵：已移除下方會造成報錯的舊版 listContainer 渲染邏輯 ---
@@ -200,7 +202,7 @@ async function applyFilters() {
         renderShoppingList(data);
         updateFilterUI();
         // 💡 返回一個成功的信號
-        return true; 
+        return true;
     }
     return false;
 }
