@@ -493,7 +493,8 @@
                                 <p><strong class="text-slate-800">14:30</strong>　 從 <ins>東京都廳舍</ins> ➡️
                                     <ins>西葛西</ins>　<a href="https://maps.app.goo.gl/erYZvB3j7YgqhMPb9" target="_blank"
                                         class="btn-pill-nav">交通指南
-                                        ↗</a></p>
+                                        ↗</a>
+                                </p>
                             </div>
                             <div class="bg-gray-50 p-4 rounded-sm border-l-2 border-slate-300 mt-2">
                                 <span
@@ -513,9 +514,9 @@
                         </div>
                         <div id="day5" class="max-h-0 overflow-hidden transition-max-height mt-0">
                             <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
-                                <p><strong class="text-slate-800">09:00</strong> 整理行李、最後採買</p>
-                                <p><strong class="text-slate-800">10:00</strong> 飯店退房</p>
-                                <p><strong class="text-slate-800">10:30</strong> 出發前往成田機場 (建議 12:25 前抵達)</p>
+                                <p><strong class="text-slate-800">08:00</strong> 整理行李、最後採買</p>
+                                <p><strong class="text-slate-800">09:00</strong> 飯店退房</p>
+                                <p><strong class="text-slate-800">09:30</strong> 出發前往成田機場 (建議 12:25 前抵達)</p>
                                 <p><strong class="text-slate-800">14:25</strong> 搭乘長榮 BR197 班機返回台灣</p>
                                 <div class="bg-gray-50 p-4 rounded-sm border-l-2 border-slate-300 mt-2">
                                     <span
@@ -676,6 +677,9 @@
                 </div>
                 <form id="form-shopping" class="space-y-4 text-sm" onsubmit="saveShoppingItem(event)">
                     <input type="hidden" id="form-id">
+                    <input type="hidden" id="form-priority-p1" value="0">
+                    <input type="hidden" id="form-priority-p2" value="0">
+                    <input type="hidden" id="form-priority-p3" value="0">
                     <div><label class="block text-gray-500 mb-1">品項名稱 <span class="text-red-500">*</span></label><input
                             type="text" id="form-name" required
                             class="w-full border border-gray-300 p-2 focus:outline-none focus:border-slate-800">
@@ -698,16 +702,23 @@
                         <input type="file" id="form-file-input" accept="image/*"
                             class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-semibold file:bg-white file:text-slate-700 hover:file:bg-gray-100 cursor-pointer">
                     </div>
+
                     <div class="grid grid-cols-3 gap-3">
-                        <div><label class="block text-gray-500 mb-1 text-center">賴</label><input type="number"
-                                id="form-qty1" value="0" min="0"
-                                class="w-full border border-gray-300 p-2 text-center bg-gray-50"></div>
-                        <div><label class="block text-gray-500 mb-1 text-center">李</label><input type="number"
-                                id="form-qty2" value="0" min="0"
-                                class="w-full border border-gray-300 p-2 text-center bg-gray-50"></div>
-                        <div><label class="block text-gray-500 mb-1 text-center">林</label><input type="number"
-                                id="form-qty3" value="0" min="0"
-                                class="w-full border border-gray-300 p-2 text-center bg-gray-50"></div>
+                        <div>
+                            <label id="form-label-p1" class="block text-gray-500 mb-1 text-center">賴</label>
+                            <input type="number" id="form-qty1" value="0" min="0"
+                                class="w-full border border-gray-300 p-2 text-center bg-gray-50">
+                        </div>
+                        <div>
+                            <label id="form-label-p2" class="block text-gray-500 mb-1 text-center">李</label>
+                            <input type="number" id="form-qty2" value="0" min="0"
+                                class="w-full border border-gray-300 p-2 text-center bg-gray-50">
+                        </div>
+                        <div>
+                            <label id="form-label-p3" class="block text-gray-500 mb-1 text-center">林</label>
+                            <input type="number" id="form-qty3" value="0" min="0"
+                                class="w-full border border-gray-300 p-2 text-center bg-gray-50">
+                        </div>
                     </div>
                     <div>
                         <label class="block text-gray-500 mb-1">所屬分類</label>
@@ -754,8 +765,8 @@
                 </div>
             </div>
         </div>
-
-        <footer class="text-center text-xs text-gray-400 py-12">v20260404.2245 © 2026 Journey Project. </footer>
+        <div id="context-menu"></div>
+        <footer class="text-center text-xs text-gray-400 py-12">v20260405.0150 © 2026 Journey Project. </footer>
         <div id="lightbox"
             class="hidden fixed inset-0 bg-black bg-opacity-95 z-[100] cursor-zoom-out flex flex-col justify-center items-center p-4"
             onclick="closeLightbox()">
