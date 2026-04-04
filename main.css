@@ -207,3 +207,52 @@ input[type=number] {
         border-radius: 1.5rem 1.5rem 0 0;
     }
 }
+
+/* --- main.css --- */
+
+/* 優先級小圓圈基本樣式 */
+.priority-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    border: 1px solid #cbd5e1;
+    transition: all 0.2s;
+    cursor: pointer;
+}
+.priority-dot.must-buy { background-color: #ef4444; border-color: #ef4444; } /* 紅色: 必買 */
+.priority-dot.looking { background-color: #3b82f6; border-color: #3b82f6; } /* 藍色: 看看 */
+
+/* 長按彈出的自訂選單 */
+#context-menu {
+    position: fixed;
+    z-index: 1000;
+    background: white;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    border-radius: 12px;
+    padding: 8px 0;
+    min-width: 160px;
+    display: none;
+    font-family: 'Noto Serif TC', serif;
+}
+.menu-item {
+    padding: 10px 16px;
+    font-size: 13px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+.menu-item:hover { background-color: #f8fafc; }
+.menu-divider { height: 1px; background: #f1f5f9; margin: 4px 0; }
+.shopping-card {
+    /* 讓使用者知道可以互動 */
+    cursor: context-menu; 
+    user-select: none; /* 防止長按/右鍵時選取到文字內容 */
+}
+
+/* 也可以在滑過時加一點點陰影變化 */
+.shopping-card:hover {
+    border-color: #cbd5e1;
+    background-color: #fcfcfc;
+}
