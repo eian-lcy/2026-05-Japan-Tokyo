@@ -139,15 +139,15 @@
 
             <nav class="mt-10 flex flex-wrap gap-6 text-sm tracking-wide text-gray-500 font-medium">
                 <a href="#prep"
-                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1">行前準備</a>
+                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1 font-bold text-slate-700">行前準備</a>
                 <a href="#transit"
-                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1">交通指南</a>
+                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1 font-bold text-slate-700">交通指南</a>
                 <a href="#itinerary"
-                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1">行程總覽</a>
+                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1 font-bold text-slate-700">行程總覽</a>
                 <a href="#shopping"
-                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1">購物總表</a>
+                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1 font-bold text-slate-700">購物總表</a>
                 <a href="#receipts"
-                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1">收據紀錄</a>
+                    class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1 font-bold text-slate-700">收據紀錄</a>
                 <a href="split.html"
                     class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1 font-bold text-slate-700">
                     分帳</a>
@@ -273,137 +273,179 @@
 
             <section id="itinerary">
                 <h2 class="text-xl font-bold mb-8 border-l-4 border-slate-800 pl-3">行程總覽</h2>
-
-                <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day1')">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day 1 /
-                            05.03</h3>
-                        <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
-                    </div>
-                    <div id="day1" class="max-h-0 overflow-hidden transition-max-height mt-0">
-                        <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
-                            <p><strong class="text-slate-800">06:45</strong>　 ✈️ 前往日本 </p>
-                            <p><strong class="text-slate-800">11:15</strong>　 ✈️ 抵達成田機場 (T1)，辦理入境 </p>
-                            <p><strong class="text-slate-800">13:00</strong>　 從 <ins>機場</ins> ➡️ <ins>西葛西</ins> 放行李
-                                　<a href="https://maps.app.goo.gl/CnpCcUMbbpow2Nni9" target="_blank"
-                                    class="btn-pill-nav">交通指南
-                                    ↗</a>
-                                <a href="https://cloak.ecbo.io/zh-tw" target="_blank" class="btn-pill-nav">🔍
-                                    行李寄放點 ↗</a>
-                            </p>
-                            <p><strong class="text-slate-800">16:00</strong>　 前往上野 (🍽️ 午餐：一蘭) 　<a
-                                    href="https://maps.app.goo.gl/tE2U4E8kppTj62RY7" target="_blank"
-                                    class="btn-pill-nav">交通指南
-                                    ↗</a></p>
-                            <p>　 　 　 • 上野丸井 </p>
-                            <p>　 　 　 • OS Drug 上野店藥妝店　<button onclick="navigateToShopping('location', '藥妝店')"
-                                    class="btn-pill-nav">前往藥妝店採買清單</button></p>
-                            <p>　 　 　 • 松本清　<button onclick="navigateToShopping('location', '藥妝店')" class="btn-pill-nav">
-                                    前往藥妝店採買清單</button></p>
-                            <p>　 　 　 • Sun Drug 上野阿美橫町中央店</p>
-                            <p>　 　 　 • 二木的菓子 BIC館</p>
-                            <p>　 　 　 • 唐吉訶德 御徒町店　<button onclick="navigateToShopping('location', '唐吉訶德')" class="btn-pill-nav">
-                                    前往唐吉訶德採買清單
-                                </button></p>
-                            <p>　 　 　 • UNIQLO 御徒町店　<button onclick="navigateToShopping('location', 'UNIQLO')" class="btn-pill-nav">
-                                    前往UNIQLO採買清單
-                                </button></p>
-                            <p><strong class="text-slate-800">18:30</strong>　 前往秋葉原（動漫、電器街）</p>
-                            <p>　 　 　 • 3COINS</p>
-                            <p>　 　 　 • 秋葉原無線電會館</p>
-                            <p><strong class="text-slate-800">20:30</strong>　從 <ins>秋葉原</ins> ➡️ <ins>西葛西</ins>　<a
-                                    href="https://maps.app.goo.gl/ksRZVCZ9CJS5yZGG6" target="_blank"
-                                    class="btn-pill-nav">交通指南
-                                    ↗</a></p>
-                            <!-- <button onclick="document.getElementById('shopping').scrollIntoView({ behavior: 'smooth' })"
+                <section> <!--第一天行程-->
+                    <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day1')">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day 1
+                                <p class="text-sm text-gray-300">2026.05.03 日曜日</p>
+                            </h3>
+                            <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
+                        </div>
+                        <div id="day1" class="max-h-0 overflow-hidden transition-max-height mt-0">
+                            <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
+                                <p><strong class="text-slate-800">06:45</strong>　 ✈️ 前往日本 </p>
+                                <p><strong class="text-slate-800">11:15</strong>　 ✈️ 抵達成田機場 (T1)，辦理入境 </p>
+                                <p><strong class="text-slate-800">13:00</strong>　 從 <ins>機場</ins> ➡️ <ins>西葛西</ins> 放行李
+                                    <br>　 　 　 <a href="https://maps.app.goo.gl/CnpCcUMbbpow2Nni9" target="_blank"
+                                        class="mt-4 btn-pill-nav">交通指南
+                                        ↗</a>
+                                    <a href="https://cloak.ecbo.io/zh-tw" target="_blank" class="mt-4 btn-pill-nav">🔍
+                                        行李寄放點 ↗</a>
+                                </p>
+                                <p><strong class="text-slate-800">16:00</strong>　 前往上野 (🍽️ 午餐：一蘭) 　<a
+                                        href="https://maps.app.goo.gl/tE2U4E8kppTj62RY7" target="_blank"
+                                        class="btn-pill-nav">交通指南
+                                        ↗</a></p>
+                                <p>　 　 　 • 上野丸井 </p>
+                                <p>　 　 　 • OS Drug 上野店藥妝店　<button onclick="navigateToShopping('location', '藥妝店')"
+                                        class="btn-pill-nav">前往藥妝店採買清單</button></p>
+                                <p>　 　 　 • 松本清　<button onclick="navigateToShopping('location', '藥妝店')"
+                                        class="btn-pill-nav">
+                                        前往藥妝店採買清單</button></p>
+                                <p>　 　 　 • Sun Drug 上野阿美橫町中央店</p>
+                                <p>　 　 　 • 二木的菓子 BIC館</p>
+                                <p>　 　 　 • 唐吉訶德 御徒町店　<button onclick="navigateToShopping('location', '唐吉訶德')"
+                                        class="btn-pill-nav">
+                                        前往唐吉訶德採買清單
+                                    </button></p>
+                                <p>　 　 　 • UNIQLO 御徒町店　<button onclick="navigateToShopping('location', 'UNIQLO')"
+                                        class="btn-pill-nav">
+                                        前往UNIQLO採買清單
+                                    </button></p>
+                                <p><strong class="text-slate-800">18:30</strong>　 前往秋葉原（動漫、電器街）</p>
+                                <p>　 　 　 • 3COINS</p>
+                                <p>　 　 　 • 秋葉原無線電會館</p>
+                                <p><strong class="text-slate-800">20:30</strong>　從 <ins>秋葉原</ins> ➡️ <ins>西葛西</ins>　<a
+                                        href="https://maps.app.goo.gl/ksRZVCZ9CJS5yZGG6" target="_blank"
+                                        class="btn-pill-nav">交通指南
+                                        ↗</a></p>
+                                <!-- <button onclick="document.getElementById('shopping').scrollIntoView({ behavior: 'smooth' })"
                             class="mt-4 border border-slate-800 text-slate-800 px-4 py-2 text-xs hover:bg-slate-800 hover:text-white transition">前往購物總表
                             ↗</button> -->
-                            <p><strong class="text-slate-800">15:00</strong>　 Minn 西葛西 Check-in、放行李</p>
-                            <div class="bg-gray-50 p-4 rounded-sm border-l-2 border-slate-300 mt-2">
-                                <span class="text-xs font-bold bg-slate-800 text-white px-2 py-1 mr-2">交通
-                                    TIPS</span>西葛西出發，搭「東西線」到「日本橋」轉乘「銀座線」即可抵達上野。
+                                <p><strong class="text-slate-800">15:00</strong>　 Minn 西葛西 Check-in、放行李</p>
+                                <div class="bg-gray-50 p-4 rounded-sm border-l-2 border-slate-300 mt-2">
+                                    <span class="text-xs font-bold bg-slate-800 text-white px-2 py-1 mr-2">交通
+                                        TIPS</span>西葛西出發，搭「東西線」到「日本橋」轉乘「銀座線」即可抵達上野。
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day2')">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day 2 /
-                            05.04</h3>
-                        <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
-                    </div>
-                    <div id="day2" class="max-h-0 overflow-hidden transition-max-height mt-0">
-                        <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
-                            <p><strong class="text-slate-800">08:30</strong>　 待編輯</p>
+                </section>
+                <section> <!--第二天行程-->
+                    <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day2')">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day 2
+                                <p class="text-sm text-gray-300">2026.05.04 月曜日</p>
+                            </h3>
+                            <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
                         </div>
-                    </div>
-                </div>
-
-                <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day3')">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day 3 /
-                            05.05</h3>
-                        <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
-                    </div>
-                    <div id="day3" class="max-h-0 overflow-hidden transition-max-height mt-0">
-                        <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
-                            <p><strong class="text-slate-800">08:30</strong>　 待編輯</p>
-                            <div class="bg-gray-50 p-4 rounded-sm border-l-2 border-slate-300 mt-2">
-                                <span
-                                    class="text-xs font-bold bg-slate-800 text-white px-2 py-1 mr-2">注意事項</span>新宿車站猶如大迷宮，建議看頭頂指標（如：東口、南口）為主。
-                            </div>
-                            <button onclick="document.getElementById('shopping').scrollIntoView({ behavior: 'smooth' })"
-                                class="mt-4 border border-slate-800 text-slate-800 px-4 py-2 text-xs hover:bg-slate-800 hover:text-white transition">前往購物總表
-                                ↗</button>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day4')">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day 4 /
-                            05.06</h3>
-                        <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
-                    </div>
-                    <div id="day4" class="max-h-0 overflow-hidden transition-max-height mt-0">
-                        <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
-                            <p><strong class="text-slate-800">08:30</strong>　 待編輯</p>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day5')">
-                    <div class="flex justify-between items-center">
-                        <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day 5 /
-                            05.07</h3>
-                        <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
-                    </div>
-                    <div id="day5" class="max-h-0 overflow-hidden transition-max-height mt-0">
-                        <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
-                            <p><strong class="text-slate-800">09:00</strong> 整理行李、最後採買</p>
-                            <p><strong class="text-slate-800">10:00</strong> 飯店退房</p>
-                            <p><strong class="text-slate-800">10:30</strong> 出發前往成田機場 (建議 12:25 前抵達) <a
-                                    href="https://maps.app.goo.gl/成田機場連結" target="_blank"
-                                    class="text-xs text-gray-400 hover:text-slate-800 underline underline-offset-2 ml-1 transition">地圖
-                                    ↗</a></p>
-                            <p><strong class="text-slate-800">14:25</strong> 搭乘長榮 BR197 班機返回台灣</p>
-                            <div class="bg-gray-50 p-4 rounded-sm border-l-2 border-slate-300 mt-2">
-                                <span
-                                    class="text-xs font-bold bg-slate-800 text-white px-2 py-1 mr-2">機場交通</span>可搭乘東西線至「日本橋」轉乘都營淺草線（直通運轉京成電鐵）前往機場。
+                        <div id="day2" class="max-h-0 overflow-hidden transition-max-height mt-0">
+                            <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
+                                <p><strong class="text-slate-800">07:30</strong>　 從 <ins>飯店</ins> ➡️ <ins>淺草寺</ins>　<a
+                                        href="https://maps.app.goo.gl/zd2rQsy8ag2t4kh8A" target="_blank"
+                                        class="btn-pill-nav">交通指南
+                                        ↗</a></p>
+                                <p><strong class="text-slate-800">08:00</strong>　 淺草寺</p>
+                                <p><strong class="text-slate-800">09:30</strong>　 今戶神社</p>
+                                <p><strong class="text-slate-800">12:30</strong>　 從 <ins>淺草寺</ins> ➡️ <ins>晴空塔</ins>　<a
+                                        href="https://maps.app.goo.gl/gVmqJqaaEpcdGxZC9" target="_blank"
+                                        class="btn-pill-nav">交通指南
+                                        ↗</a></p>
+                                <p><strong class="text-slate-800">13:30</strong>　 🍽️ 晴空塔敘敘苑</p>
+                                <p><strong class="text-slate-800">16:00</strong>　 從 <ins>晴空塔</ins> ➡️ <ins>銀座</ins>　<a
+                                        href="https://maps.app.goo.gl/As6o9guwGnfTNZu59" target="_blank"
+                                        class="btn-pill-nav">交通指南
+                                        ↗</a></p>
+                                <p>　 　 　 • 銀座 Loft</p>
+                                <p>　 　 　 • 銀座 MUJI<button onclick="navigateToShopping('location', 'MUJI')"
+                                        class="ml-4 btn-pill-nav">
+                                        前往muji採買清單
+                                    </button></p>
+                                <p>　 　 　 • 銀座 大創</p>
+                                <p>　 　 　 • 銀座 松本清<button onclick="navigateToShopping('location', '藥妝店')"
+                                        class="ml-4 btn-pill-nav">
+                                        前往藥妝店採買清單
+                                    </button></p>
+                                <p>　 　 　 • 銀座 Refa梳子</p>
+                                <p>　 　 　 • 銀座 東京鳩居堂</p>
+                                <p>　 　 　 • 銀座 GU/UQ</p>
                             </div>
                         </div>
                     </div>
-                </div>
+                </section>
+                <section> <!--第三天行程-->
+                    <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day3')">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day 3
+                                <p class="text-sm text-gray-300">2026.05.05 火曜日</p>
+                            </h3>
+                            <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
+                        </div>
+                        <div id="day3" class="max-h-0 overflow-hidden transition-max-height mt-0">
+                            <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
+                                <p><strong class="text-slate-800">08:30</strong>　 待編輯</p>
+                                <div class="bg-gray-50 p-4 rounded-sm border-l-2 border-slate-300 mt-2">
+                                    <span
+                                        class="text-xs font-bold bg-slate-800 text-white px-2 py-1 mr-2">注意事項</span>新宿車站猶如大迷宮，建議看頭頂指標（如：東口、南口）為主。
+                                </div>
+                                <button
+                                    onclick="document.getElementById('shopping').scrollIntoView({ behavior: 'smooth' })"
+                                    class="mt-4 border border-slate-800 text-slate-800 px-4 py-2 text-xs hover:bg-slate-800 hover:text-white transition">前往購物總表
+                                    ↗</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section> <!--第四天行程-->
+                    <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day4')">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day
+                                4
+                                <p class="text-sm text-gray-300">2026.05.06 水曜日</p>
+                            </h3>
+                            <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
+                        </div>
+                        <div id="day4" class="max-h-0 overflow-hidden transition-max-height mt-0">
+                            <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
+                                <p><strong class="text-slate-800">08:30</strong>　 待編輯</p>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+                <section> <!--第五天行程-->
+                    <div class="border-b border-gray-200 py-4 group cursor-pointer" onclick="toggleAccordion('day5')">
+                        <div class="flex justify-between items-center">
+                            <h3 class="text-lg font-medium text-slate-800 group-hover:text-gray-500 transition">Day
+                                5
+                                <p class="text-sm text-gray-300">2026.05.07 木曜日</p>
+                            </h3>
+                            <span class="text-xl text-gray-400 group-hover:text-slate-800">+</span>
+                        </div>
+                        <div id="day5" class="max-h-0 overflow-hidden transition-max-height mt-0">
+                            <div class="pt-6 pb-4 text-sm text-gray-600 space-y-4">
+                                <p><strong class="text-slate-800">09:00</strong> 整理行李、最後採買</p>
+                                <p><strong class="text-slate-800">10:00</strong> 飯店退房</p>
+                                <p><strong class="text-slate-800">10:30</strong> 出發前往成田機場 (建議 12:25 前抵達) <a
+                                        href="https://maps.app.goo.gl/成田機場連結" target="_blank"
+                                        class="text-xs text-gray-400 hover:text-slate-800 underline underline-offset-2 ml-1 transition">地圖
+                                        ↗</a></p>
+                                <p><strong class="text-slate-800">14:25</strong> 搭乘長榮 BR197 班機返回台灣</p>
+                                <div class="bg-gray-50 p-4 rounded-sm border-l-2 border-slate-300 mt-2">
+                                    <span
+                                        class="text-xs font-bold bg-slate-800 text-white px-2 py-1 mr-2">機場交通</span>可搭乘東西線至「日本橋」轉乘都營淺草線（直通運轉京成電鐵）前往機場。
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
             </section>
-
             <section id="shopping">
                 <div class="flex justify-between items-end mb-6 border-l-4 border-slate-800 pl-3">
                     <div class="flex items-center gap-3">
                         <h2 class="text-xl font-bold">購物總表</h2>
                         <span
                             class="bg-amber-100 text-amber-1600 text-[10px] px-2 py-1 rounded-sm font-bold shadow-sm border border-amber-200">
-                            💡 是免稅，不是免費
+                            ⚠️ 是免稅，不是免費
                         </span>
                     </div>
                     <button onclick="openModal(null)"
@@ -412,7 +454,7 @@
                 </div>
 
                 <div class="mb-6 overflow-x-auto no-scrollbar flex gap-2 pb-2">
-                    <button onclick="filters.locations.clear(); applyFilters();"
+                    <button onclick="toggleLocationFilter(null);"
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-slate-800 bg-slate-800 text-white text-xs font-bold transition">全部</button>
                     <button onclick="toggleLocationFilter('MUJI')"
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-xs hover:border-slate-800 transition">MUJI</button>
@@ -434,7 +476,7 @@
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-xs hover:border-slate-800 transition">其他</button>
                 </div>
                 <div class="mb-6 overflow-x-auto no-scrollbar flex gap-2 pb-2">
-                    <button onclick="filters.people.clear(); applyFilters();"
+                    <button onclick="togglePersonFilter(null); applyFilters();"
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-xs">👥
                         全體人員</button>
                     <div class="h-6 w-[1px] bg-gray-300 mx-2 self-center"></div> <button
@@ -626,7 +668,7 @@
             </div>
         </div>
 
-        <footer class="text-center text-xs text-gray-400 py-12">© 2026 Journey Project.</footer>
+        <footer class="text-center text-xs text-gray-400 py-12">v20260404.1029 © 2026 Journey Project. </footer>
         <div id="lightbox"
             class="hidden fixed inset-0 bg-black bg-opacity-95 z-[100] cursor-zoom-out flex flex-col justify-center items-center p-4"
             onclick="closeLightbox()">
