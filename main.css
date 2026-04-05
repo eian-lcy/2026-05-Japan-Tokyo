@@ -246,9 +246,14 @@ input[type=number] {
 .menu-item:hover { background-color: #f8fafc; }
 .menu-divider { height: 1px; background: #f1f5f9; margin: 4px 0; }
 .shopping-card {
-    /* 讓使用者知道可以互動 */
-    cursor: context-menu; 
-    user-select: none; /* 防止長按/右鍵時選取到文字內容 */
+    /* 💡 核心修正：防止 iOS 彈出系統選單與文字選取 */
+    -webkit-touch-callout: none; /* 禁用 iOS 長按彈出的系統選單 */
+    -webkit-user-select: none;   /* 禁用 iOS 文字選取 */
+    user-select: none;           /* 禁用標準文字選取 */
+    
+    /* 保持原本的樣式 */
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent; /* 移除點擊時的藍色高亮 */
 }
 
 /* 也可以在滑過時加一點點陰影變化 */
