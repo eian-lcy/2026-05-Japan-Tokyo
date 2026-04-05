@@ -168,6 +168,14 @@ function startLongPress(e, itemId) {
     const x = touch.clientX;
     const y = touch.clientY;
 
+    // 如果使用者移動手指，通常代表要捲動網頁而非長按
+    // 我們可以加一個 move 監聽來取消計時器
+    const cancelOnMove = () => {
+        clearTimeout(longPressTimer);
+        document.removeEventListener('touchmove', cancelOnMove);
+    };
+    document.addEventListener('touchmove', cancelOnMove);
+
     longPressTimer = setTimeout(() => {
         showContextMenu(x, y, itemId);
     }, 600); // 0.6秒視為長按
