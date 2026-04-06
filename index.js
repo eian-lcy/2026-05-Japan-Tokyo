@@ -553,6 +553,9 @@ function openModal(itemStr = null) {
     const elQty1 = document.getElementById('form-qty1');
     const elQty2 = document.getElementById('form-qty2');
     const elQty3 = document.getElementById('form-qty3');
+    const elQty1P = document.getElementById('form-qty1-proxy');
+    const elQty2P = document.getElementById('form-qty2-proxy');
+    const elQty3P = document.getElementById('form-qty3-proxy');
     const elImgUrl = document.getElementById('form-image-url');
     const elImgPreview = document.getElementById('form-img-preview');
     const elImgContainer = document.getElementById('img-preview-container');
@@ -566,7 +569,7 @@ function openModal(itemStr = null) {
         try {
             // 💡 統一使用 itemData 變數
             const itemData = JSON.parse(decodeURIComponent(itemStr));
-            
+
             if (elId) elId.value = itemData.id || '';
             if (elName) elName.value = itemData.item_name || ''; // 這裡讀取資料庫的 item_name 填入 form-name
             if (elSpec) elSpec.value = itemData.spec || '';
@@ -575,6 +578,9 @@ function openModal(itemStr = null) {
             if (elQty1) elQty1.value = itemData.qty_person1 || 0;
             if (elQty2) elQty2.value = itemData.qty_person2 || 0;
             if (elQty3) elQty3.value = itemData.qty_person3 || 0;
+            if (elQty1P) elQty1P.value = itemData.qty_p1_proxy || 0;
+            if (elQty2P) elQty2P.value = itemData.qty_p2_proxy || 0;
+            if (elQty3P) elQty3P.value = itemData.qty_p3_proxy || 0;
 
             p1 = itemData.priority_p1 || 0;
             p2 = itemData.priority_p2 || 0;
@@ -587,6 +593,9 @@ function openModal(itemStr = null) {
             console.error('解析資料失敗:', e);
         }
     } else {
+        if (elQty1P) elQty1P.value = 0;
+        if (elQty2P) elQty2P.value = 0;
+        if (elQty3P) elQty3P.value = 0;
         // 新增模式
         title.textContent = '新增購物清單';
         if (deleteBtn) deleteBtn.classList.add('hidden');
