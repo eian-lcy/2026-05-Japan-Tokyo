@@ -11,7 +11,7 @@
 </head>
 
 <body class="antialiased overflow-x-hidden">
-
+    <!-- 身分驗證 -->
     <div id="auth-container" class="hidden min-h-screen flex items-center justify-center bg-gray-50 px-6">
         <div class="max-w-md w-full bg-white p-10 shadow-2xl border border-gray-100 text-center">
             <h2 class="text-3xl font-bold tracking-widest text-slate-800 mb-2">TOKYO 2026</h2>
@@ -28,7 +28,7 @@
             <p id="login-error" class="text-red-500 text-xs mt-4 hidden"></p>
         </div>
     </div>
-
+    <!-- 主要內容 -->
     <div id="main-content" class="hidden">
         <header class="max-w-5xl mx-auto pt-16 pb-8 px-6 border-b border-gray-200 relative">
             <div class="absolute top-8 right-6 flex items-center gap-3">
@@ -37,7 +37,7 @@
                     class="text-[10px] border border-gray-200 px-2 py-1 text-gray-400 hover:text-red-500 hover:border-red-200 transition">登出</button>
             </div>
         </header>
-
+        <!-- 標題 -->
         <header class="max-w-5xl mx-auto pt-16 pb-8 px-6 border-b border-gray-200">
             <h1 class="text-5xl font-bold tracking-widest text-slate-800">TOKYO
                 <br><span class="text-sm font-normal text-gray-500 tracking-normal height-[1.2em]">2026.05.03 -
@@ -55,6 +55,7 @@
                     </svg> -->
                 </button>
             </h1>
+            <!-- 重要連結 -->
             <div id="note-modal"
                 class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 p-4">
                 <div class="bg-white p-6 w-full max-w-sm shadow-2xl rounded-lg">
@@ -69,7 +70,7 @@
                         class="mt-6 w-full py-2 bg-gray-100 text-gray-600 rounded-sm text-xs font-bold">關閉</button>
                 </div>
             </div>
-
+            <!-- 航班資訊 -->
             <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div class="bg-white border border-gray-100 p-6 shadow-sm relative group">
                     <div class="flex justify-between items-start mb-5">
@@ -142,7 +143,7 @@
                     </div>
                 </div>
             </div>
-
+            <!-- 目錄 -->
             <nav class="mt-10 flex flex-wrap gap-6 text-sm tracking-wide text-gray-500 font-medium">
                 <a href="#prep"
                     class="hover:text-slate-900 transition border-b border-transparent hover:border-slate-900 pb-1 font-bold text-slate-700">行前準備</a>
@@ -161,7 +162,7 @@
         </header>
 
         <main class="max-w-5xl mx-auto px-6 py-16 space-y-12">
-
+            <!-- 行前準備 -->
             <section id="prep" class="grid grid-cols-1 md:grid-cols-2 gap-12">
                 <div>
                     <div class="flex justify-between items-end mb-6 border-l-4 border-slate-800 pl-3">
@@ -220,7 +221,7 @@
                     </div>
                 </div>
             </section>
-
+            <!-- 交通指南 -->
             <section id="transit">
                 <h2 class="text-xl font-bold mb-6 border-l-4 border-slate-800 pl-3">交通指南</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
@@ -276,7 +277,7 @@
 
                 </div>
             </section>
-
+            <!-- 行程總覽 -->
             <section id="itinerary">
                 <h2 class="text-xl font-bold mb-8 border-l-4 border-slate-800 pl-3">行程總覽</h2>
                 <section> <!--第一天行程-->
@@ -317,8 +318,12 @@
                                     　<button onclick="navigateToShopping('location', '藥妝店')" class="btn-pill-nav">
                                         前往藥妝店採買清單</button>
                                 </p>
-                                <p>　 　 　 • <a href="https://maps.app.goo.gl/uhfHVLEBhrHdxj569" target="_blank">Sun Drug
-                                        上野阿美橫町中央店</a></p>
+                                <p>　 　 　 •
+                                    <a href="https://maps.app.goo.gl/uhfHVLEBhrHdxj569" target="_blank">
+                                        Sun Drug 上野阿美橫町中央店</a>
+                                    　<button onclick="navigateToShopping('location', '藥妝店')" class="btn-pill-nav">
+                                        前往藥妝店採買清單</button>
+                                </p>
                                 <p>　 　 　 • <a href="https://maps.app.goo.gl/vnYrwzF75KjuWrbT6" target="_blank">二木的菓子
                                         BIC館</a></p>
                                 <p>　 　 　 • <a href="https://maps.app.goo.gl/WomNRdeugyupgi1P8" target="_blank"></a>唐吉訶德
@@ -534,6 +539,7 @@
                     </div>
                 </section>
             </section>
+            <!-- 購物總表 -->
             <section id="shopping">
                 <div class="flex justify-between items-end mb-6 border-l-4 border-slate-800 pl-3">
                     <div class="flex items-center gap-3">
@@ -547,7 +553,7 @@
                         class="bg-slate-800 text-white px-4 py-2 text-xs font-medium hover:bg-slate-700 transition">＋
                         新增品項</button>
                 </div>
-
+                <!-- 位置篩選 -->
                 <div class="mb-6 overflow-x-auto no-scrollbar flex gap-2 pb-2">
                     <button onclick="toggleLocationFilter(null);"
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-slate-800 bg-slate-800 text-white text-xs font-bold transition">全部</button>
@@ -570,6 +576,7 @@
                     <button onclick="toggleLocationFilter('其他')"
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-gray-600 text-xs hover:border-slate-800 transition">其他</button>
                 </div>
+                <!-- 人員篩選 -->
                 <div class="mb-6 overflow-x-auto no-scrollbar flex gap-2 pb-2">
                     <button onclick="togglePersonFilter(null); applyFilters();"
                         class="whitespace-nowrap px-4 py-2 rounded-full border border-gray-200 bg-white text-xs">👥
@@ -588,7 +595,6 @@
                         林
                     </button>
                 </div>
-
             </section>
             <div class="relative">
                 <div id="shopping-list-container"
@@ -602,7 +608,6 @@
                     顯示全部品項 ▿
                 </button>
             </div>
-
 
             <section id="receipts" class="pt-8 border-t border-gray-200">
                 <div class="flex justify-between items-end mb-8 border-l-4 border-slate-800 pl-3">
@@ -618,9 +623,8 @@
                     <div class="col-span-full text-center py-8 text-gray-400 text-sm">目前尚無照片，點擊右上角上傳。</div>
                 </div>
             </section>
-
         </main>
-
+        <!-- 浮動操作按鈕 -->
         <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end">
             <div id="fab-menu"
                 class="hidden mb-4 bg-white border border-gray-200 shadow-xl overflow-hidden flex flex-col text-sm w-32 origin-bottom transition-all">
@@ -647,20 +651,21 @@
                 </svg>
             </button>
         </div>
-
+        <!-- 文件存放 -->
         <div id="doc-modal"
             class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 transition-opacity p-4">
             <div class="bg-white p-6 w-full max-w-md shadow-2xl rounded-lg">
+                <!-- 模態框標題 -->
                 <div class="flex justify-between items-center mb-4 border-b border-gray-100 pb-3">
                     <h3 id="doc-modal-title" class="text-lg font-bold text-slate-800">相關文件</h3>
                     <button onclick="closeDocModal()"
                         class="text-gray-400 hover:text-gray-600 text-2xl leading-none">×</button>
                 </div>
-
+                <!-- 文件列表 -->
                 <div id="doc-list" class="space-y-2 mb-4 max-h-48 overflow-y-auto pr-2">
                     <p class="text-center text-gray-400 text-xs py-4">載入中...</p>
                 </div>
-
+                <!-- 上傳文件 -->
                 <div class="border-t border-gray-100 pt-4">
                     <input type="hidden" id="doc-category">
                     <input type="file" id="doc-upload-input" accept="image/*,.pdf" class="hidden"
@@ -672,7 +677,7 @@
                 </div>
             </div>
         </div>
-
+        <!-- 新增框 -->
         <div id="add-modal"
             class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-end md:items-center z-50 transition-opacity">
             <div
@@ -710,7 +715,7 @@
                             class="block w-full text-xs text-slate-500 file:mr-4 file:py-2 file:px-4 file:border-0 file:text-xs file:font-semibold file:bg-white file:text-slate-700 hover:file:bg-gray-100 cursor-pointer">
                     </div>
 
-                    <div class="grid grid-cols-3 gap-3">
+                    <!-- <div class="grid grid-cols-3 gap-3">
                         <div>
                             <label id="form-label-p1" class="block text-gray-500 mb-1 text-center">賴</label>
                             <input type="number" id="form-qty1" value="0" min="0"
@@ -725,6 +730,42 @@
                             <label id="form-label-p3" class="block text-gray-500 mb-1 text-center">林</label>
                             <input type="number" id="form-qty3" value="0" min="0"
                                 class="w-full border border-gray-300 p-2 text-center bg-gray-50">
+                        </div>
+                    </div> -->
+                    <div class="space-y-4">
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-3 text-[10px] font-bold text-gray-400">自用數量</div>
+                            <div>
+                                <label id="form-label-p1" class="block text-gray-500 mb-1 text-center text-xs">賴</label>
+                                <input type="number" id="form-qty1" value="0" min="0"
+                                    class="w-full border border-gray-300 p-2 text-center bg-gray-50 rounded-sm">
+                            </div>
+                            <div>
+                                <label id="form-label-p2" class="block text-gray-500 mb-1 text-center text-xs">李</label>
+                                <input type="number" id="form-qty2" value="0" min="0"
+                                    class="w-full border border-gray-300 p-2 text-center bg-gray-50 rounded-sm">
+                            </div>
+                            <div>
+                                <label id="form-label-p3" class="block text-gray-500 mb-1 text-center text-xs">林</label>
+                                <input type="number" id="form-qty3" value="0" min="0"
+                                    class="w-full border border-gray-300 p-2 text-center bg-gray-50 rounded-sm">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3">
+                            <div class="col-span-3 text-[10px] font-bold text-blue-400">代購數量 (Proxy)</div>
+                            <div>
+                                <input type="number" id="form-qty1-proxy" value="0" min="0"
+                                    class="w-full border border-blue-100 p-2 text-center bg-blue-50 rounded-sm text-blue-700">
+                            </div>
+                            <div>
+                                <input type="number" id="form-qty2-proxy" value="0" min="0"
+                                    class="w-full border border-blue-100 p-2 text-center bg-blue-50 rounded-sm text-blue-700">
+                            </div>
+                            <div>
+                                <input type="number" id="form-qty3-proxy" value="0" min="0"
+                                    class="w-full border border-blue-100 p-2 text-center bg-blue-50 rounded-sm text-blue-700">
+                            </div>
                         </div>
                     </div>
                     <div>
@@ -750,7 +791,7 @@
                 </form>
             </div>
         </div>
-
+        <!-- 照片備註 -->
         <div id="receipt-modal"
             class="hidden fixed inset-0 bg-black bg-opacity-60 flex justify-center items-center z-50 transition-opacity p-4">
             <div class="bg-white p-6 w-full max-w-sm shadow-2xl rounded-lg">
@@ -772,8 +813,9 @@
                 </div>
             </div>
         </div>
+        <!-- 上下文選單 -->
         <div id="context-menu"></div>
-        <footer class="text-center text-xs text-gray-400 py-12">v20260406.1100 © 2026 Journey Project. </footer>
+        <footer class="text-center text-xs text-gray-400 py-12">v20260407.0135 © 2026 Journey Project. </footer>
         <div id="lightbox"
             class="hidden fixed inset-0 bg-black bg-opacity-95 z-[100] cursor-zoom-out flex flex-col justify-center items-center p-4"
             onclick="closeLightbox()">
