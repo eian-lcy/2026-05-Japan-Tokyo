@@ -233,8 +233,8 @@ async function showContextMenu(x, y, itemId) {
         }
         `;
 
-    menu.style.left = `${x} px`;
-    menu.style.top = `${y} px`;
+    menu.style.left = `${x}px`;
+    menu.style.top = `${y}px`;
     menu.style.display = 'block';
 
     // 💡 聰明的邊界檢查：防止選單超出螢幕右側或下方
@@ -566,7 +566,7 @@ function openModal(itemStr = null) {
         try {
             // 💡 統一使用 itemData 變數
             const itemData = JSON.parse(decodeURIComponent(itemStr));
-
+            
             if (elId) elId.value = itemData.id || '';
             if (elName) elName.value = itemData.item_name || ''; // 這裡讀取資料庫的 item_name 填入 form-name
             if (elSpec) elSpec.value = itemData.spec || '';
@@ -616,10 +616,6 @@ function openModal(itemStr = null) {
             labelEl.innerHTML = `${personName}<span class="priority-dot ${classes}" id="dot-${personKey}" onclick="cyclePriority('${personKey}')"></span>`;
         }
     };
-
-    updateLabelWithDot('form-qty1-label', '賴', p1, 'p1');
-    updateLabelWithDot('form-qty2-label', '李', p2, 'p2');
-    updateLabelWithDot('form-qty3-label', '林', p3, 'p3');
 
     updateModalLabels(p1, p2, p3);
     // 最後顯示 Modal
@@ -903,7 +899,7 @@ async function fetchDocuments(category) {
         .order('created_at', { ascending: false });
 
     if (error) {
-        listContainer.innerHTML = `< p class="text-red-500 text-[10px] py-4" > 抓取失敗</p > `;
+        listContainer.innerHTML = `<p class="text-red-500 text-[10px] py-4" > 抓取失敗</p> `;
         return;
     }
 
@@ -913,7 +909,7 @@ async function fetchDocuments(category) {
     }
 
     listContainer.innerHTML = data.map(doc => `
-            <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-sm mb-2" >
+            <div class="flex justify-between items-center p-3 bg-gray-50 border border-gray-100 rounded-sm mb-2">
             <a href="${doc.file_url}" target="_blank" class="text-xs text-slate-700 hover:text-blue-600 truncate flex-1 mr-2 underline">
                 📄 ${doc.file_name || '查看文件'}
             </a>
