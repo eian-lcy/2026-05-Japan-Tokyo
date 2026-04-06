@@ -408,7 +408,7 @@ function renderPersonSettled(item, name, qtyField, settledField) {
 }
 // 處理分帳結清勾選
 async function toggleSettled(id, field, isChecked) {
-    console.log(`更新結清狀態: ${id}, ${field} -> ${isChecked} `);
+    console.log(`更新結清狀態: ${id}, ${field} -> ${isChecked}`);
     const { error } = await supabaseClient
         .from('shopping_list')
         .update({ [field]: isChecked })
@@ -643,8 +643,8 @@ async function uploadReceipt(input) {
     try {
         // 1. 產生獨一無二的檔名，避免覆蓋
         const fileExt = file.name.split('.').pop();
-        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt} `;
-        const filePath = `receipts / ${fileName} `;
+        const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+        const filePath = `receipts/${fileName}`;
 
         // 2. 上傳圖片到 Supabase Storage (假設你的 Bucket 叫做 'images')
         const { error: uploadError } = await supabaseClient.storage
@@ -713,8 +713,8 @@ async function saveShoppingItem(event) {
         // 如果使用者有選新圖片，就先上傳圖片
         if (file) {
             const fileExt = file.name.split('.').pop();
-            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt} `;
-            const filePath = `shopping / ${fileName} `;
+            const fileName = `${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`;
+            const filePath = `shopping/${fileName}`;
 
             const { error: uploadError } = await supabaseClient.storage
                 .from('images')
@@ -902,8 +902,8 @@ async function uploadDocument(input) {
 
     try {
         const fileExt = file.name.split('.').pop();
-        const fileName = `${category}_${Date.now()}.${fileExt} `;
-        const filePath = `documents / ${fileName} `;
+        const fileName = `${category}_${Date.now()}.${fileExt}`;
+        const filePath = `documents/${fileName}`;
 
         // 1. 上傳至 Storage
         const { error: uploadError } = await supabaseClient.storage
