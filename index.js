@@ -71,25 +71,45 @@ function renderShoppingList(items) {
     }
 
     // 💡 統一使用這個成員 HTML 產生器，整合「結清」與「優先級 (🔥👀)」
-    const getMemberHtml = (name, qty, isSettled, field, id, priority) => {
-        if (qty <= 0) return '';
+    const getMemberHtml = (name, qtySelf, qtyProxy, isSettled, field, id, priority) => {
+        const totalQty = (qtySelf || 0) + (qtyProxy || 0);
+        if (totalQty <= 0) return '';
 
         const isChecked = isSettled ? 'checked' : '';
         const textStyle = isSettled ? 'line-through text-gray-400 font-normal' : 'text-slate-800 font-bold';
-
-        // 根據 priority 顯示圖示
         const priorityIcon = priority === 1 ? '<span class="text-red-500 mr-0.5">🔥</span>' :
             priority === 2 ? '<span class="text-blue-500 mr-0.5">👀</span>' : '';
 
+        // 💡 格式：賴 1(+2) 代表自用 1 個，代購 2 個
+        const displayQty = qtyProxy > 0 ? `${qtySelf}<span class="text-blue-500 ml-0.5">(+${qtyProxy})</span>` : qtySelf;
+
         return `
-            <label class="flex items-center gap-1 cursor-pointer ${textStyle}">
-                <input type="checkbox" ${isChecked} 
-                    onchange="event.stopPropagation(); toggleSettled('${id}', '${field}', this.checked)"
-                    class="w-3.5 h-3.5 accent-slate-800 rounded border-gray-300">
-                <span class="text-[11px] flex items-center">${priorityIcon}${name} ${qty}</span>
-            </label>
-        `;
+        <label class="flex items-center gap-1 cursor-pointer ${textStyle}">
+            <input type="checkbox" ${isChecked} onchange="event.stopPropagation(); toggleSettled('${id}', '${field}', this.checked)"
+                class="w-3.5 h-3.5 accent-slate-800 rounded border-gray-300">
+            <span class="text-[11px] flex items-center">${priorityIcon}${name} ${displayQty}</span>
+        </label>
+    `;
     };
+    // const getMemberHtml = (name, qty, isSettled, field, id, priority) => {
+    //     if (qty <= 0) return '';
+
+    //     const isChecked = isSettled ? 'checked' : '';
+    //     const textStyle = isSettled ? 'line-through text-gray-400 font-normal' : 'text-slate-800 font-bold';
+
+    //     // 根據 priority 顯示圖示
+    //     const priorityIcon = priority === 1 ? '<span class="text-red-500 mr-0.5">🔥</span>' :
+    //         priority === 2 ? '<span class="text-blue-500 mr-0.5">👀</span>' : '';
+
+    //     return `
+    //         <label class="flex items-center gap-1 cursor-pointer ${textStyle}">
+    //             <input type="checkbox" ${isChecked} 
+    //                 onchange="event.stopPropagation(); toggleSettled('${id}', '${field}', this.checked)"
+    //                 class="w-3.5 h-3.5 accent-slate-800 rounded border-gray-300">
+    //             <span class="text-[11px] flex items-center">${priorityIcon}${name} ${qty}</span>
+    //         </label>
+    //     `;
+    // };
 
     const catColors = {
         'MUJI': 'bg-red-50 text-red-700 border-red-100',
@@ -105,16 +125,25 @@ function renderShoppingList(items) {
 
     // 2. 開始渲染每一項
     items.forEach(item => {
-        const q1 = item.qty_person1 || 0;
-        const q2 = item.qty_person2 || 0;
-        const q3 = item.qty_person3 || 0;
-        const total = q1 + q2 + q3;
+        const s1 = item.qty_person1 || 0, p1 = item.qty_p1_proxy || 0;
+        const s2 = item.qty_person2 || 0, p2 = item.qty_p2_proxy || 0;
+        const s3 = item.qty_person3 || 0, p3 = item.qty_p3_proxy || 0;
+
+        const total = s1 + p1 + s2 + p2 + s3 + p3; // 💡 總計包含代購
+
+        const b1 = getMemberHtml('賴', s1, p1, item.settled_p1, 'settled_p1', item.id, item.priority_p1);
+        const b2 = getMemberHtml('李', s2, p2, item.settled_p2, 'settled_p2', item.id, item.priority_p2);
+        const b3 = getMemberHtml('林', s3, p3, item.settled_p3, 'settled_p3', item.id, item.priority_p3);
+        // const q1 = item.qty_person1 || 0;
+        // const q2 = item.qty_person2 || 0;
+        // const q3 = item.qty_person3 || 0;
+        // const total = q1 + q2 + q3;
         const colorClass = catColors[item.location] || 'bg-gray-50 text-gray-600';
 
         // 呼叫外部定義的 getMemberHtml
-        const b1 = getMemberHtml('賴', q1, item.settled_p1, 'settled_p1', item.id, item.priority_p1);
-        const b2 = getMemberHtml('李', q2, item.settled_p2, 'settled_p2', item.id, item.priority_p2);
-        const b3 = getMemberHtml('林', q3, item.settled_p3, 'settled_p3', item.id, item.priority_p3);
+        // const b1 = getMemberHtml('賴', q1, item.settled_p1, 'settled_p1', item.id, item.priority_p1);
+        // const b2 = getMemberHtml('李', q2, item.settled_p2, 'settled_p2', item.id, item.priority_p2);
+        // const b3 = getMemberHtml('林', q3, item.settled_p3, 'settled_p3', item.id, item.priority_p3);
 
         let breakdownHtml = [b1, b2, b3].filter(h => h !== '').join('<span class="text-gray-200 mx-1">|</span>');
         if (!breakdownHtml) breakdownHtml = '<span class="text-[10px] text-gray-400">尚未分配</span>';
@@ -735,6 +764,11 @@ async function saveShoppingItem(event) {
             qty_person1: parseInt(document.getElementById('form-qty1').value) || 0,
             qty_person2: parseInt(document.getElementById('form-qty2').value) || 0,
             qty_person3: parseInt(document.getElementById('form-qty3').value) || 0,
+
+            qty_p1_proxy: parseInt(document.getElementById('form-qty1-proxy').value) || 0,
+            qty_p2_proxy: parseInt(document.getElementById('form-qty2-proxy').value) || 0,
+            qty_p3_proxy: parseInt(document.getElementById('form-qty3-proxy').value) || 0,
+
             location: document.getElementById('form-location').value,
             image_url: imageUrl || null,
             priority_p1: parseInt(document.getElementById('form-priority-p1').value) || 0,
