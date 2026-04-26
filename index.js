@@ -13,10 +13,11 @@ checkUser((session) => {
  */
 
 async function navigateToShopping(type, value) {
+    showTab('shopping');
     // 1. 更新篩選條件
-    filters.locations.clear();
+    filters.location = null;
     filters.people.clear();
-    if (type === 'location' && value) filters.locations.add(value);
+    if (type === 'location' && value) filters.location = value;
     else if (type === 'person' && value) filters.people.add(value);
 
     // 2. 等待渲染完成
@@ -57,6 +58,15 @@ function initLuggageStorage() {
 // --- 購物清單 (類別分類) ---
 let currentListData = [];
 
+function showSkeleton() {
+    const container = document.getElementById('shopping-list-container');
+    container.innerHTML = `
+        <div class="animate-pulse flex flex-col gap-4">
+            <div class="h-24 bg-gray-200 rounded-sm"></div>
+            <div class="h-24 bg-gray-200 rounded-sm"></div>
+        </div>
+    `;
+}
 // --- 渲染購物清單 (加入圖片縮圖與單列明細) ---
 function renderShoppingList(items) {
     const container = document.getElementById('shopping-list-container');
@@ -277,15 +287,27 @@ let filters = {
     people: new Set()      // 儲存多個人員欄位
 };
 
+let searchKeyword = '';
+let currentSort = 'created_at';
+
+// 2. 處理搜尋輸入
+function handleSearch(e) {
+    searchKeyword = e.target.value.trim();
+    applyFilters(); // 觸發重繪
+}
+
+// 3. 處理排序切換
+function handleSort(e) {
+    currentSort = e.target.value;
+    applyFilters();
+}
 async function applyFilters() {
     let query = supabaseClient.from('shopping_list').select('*');
 
-    // 地點篩選：💡 改回單純的 eq 查詢
-    if (filters.location) {
-        query = query.eq('location', filters.location);
-    }
+    // 地點篩選
+    if (filters.location) query = query.eq('location', filters.location);
 
-    // 人員篩選：維持多選 or 查詢
+    // 人員篩選：多選 or 查詢
     if (filters.people.size > 0) {
         const orConditions = Array.from(filters.people)
             .map(p => `${p}.gt.0`)
@@ -293,13 +315,27 @@ async function applyFilters() {
         query = query.or(orConditions);
     }
 
-    const { data, error } = await query.order('created_at', { ascending: false });
+    // 💡 關鍵字搜尋 (不分大小寫)
+    if (searchKeyword) {
+        query = query.ilike('item_name', `%${searchKeyword}%`);
+    }
+
+    /// 💡 排序邏輯
+    if (currentSort === 'priority_p1') {
+        // 先排優先級(1>2>0)，再排時間
+        query = query.order('priority_p1', { ascending: true }).order('created_at', { ascending: false });
+    } else {
+        query = query.order(currentSort, { ascending: currentSort === 'location' });
+    }
+    const { data, error } = await query;
 
     if (!error) {
         renderShoppingList(data);
+        document.getElementById('item-count').textContent = `${data.length} items`;
         updateFilterUI();
     }
 }
+
 
 // --- 3. 新增按鈕觸發函式 ---
 
@@ -1007,4 +1043,127 @@ function handleRightClick(e, itemId) {
 
     // 3. 顯示自定義選單 (沿用之前寫好的 showContextMenu)
     showContextMenu(x, y, itemId);
+}
+
+// index.js
+
+const FLIGHT_API_KEY = '15cd755524f1817bbf112559466a23e4';
+
+async function checkFlightStatus(flightIata) {
+    const modal = document.getElementById('flight-modal');
+    const content = document.getElementById('flight-info-content');
+    const title = document.getElementById('flight-title');
+
+    title.textContent = `航班 ${flightIata} 狀態`;
+    content.innerHTML = '<div class="text-center py-8"><span class="animate-pulse">正在連線至全球航班資料庫...</span></div>';
+    modal.classList.remove('hidden');
+
+    try {
+        // 💡 串接 AviationStack API (範例網址)
+        const response = await fetch(`http://api.aviationstack.com/v1/flights?access_key=${FLIGHT_API_KEY}&flight_iata=${flightIata}`);
+        const result = await response.json();
+
+        if (result.data && result.data.length > 0) {
+            const flight = result.data[0];
+            const statusMapping = {
+                'scheduled': '📅 預計',
+                'active': '✈️ 飛行中',
+                'landed': '🛬 已抵達',
+                'cancelled': '❌ 已取消'
+            };
+
+            // 💡 處理延誤資訊的邏輯
+            const depDelay = flight.departure.delay || 0;
+            const arrDelay = flight.arrival.delay || 0;
+
+            // 格式化顯示時間的輔助小工具
+            const formatTime = (isoStr) => isoStr ? isoStr.split('T')[1].substring(0, 5) : '--:--';
+
+            // 判斷出發時間：如果有延誤就顯示紅字與新時間
+            const depTimeHtml = depDelay > 0
+                ? `<p class="text-xs font-mono text-red-500 font-bold">延誤 ${depDelay}m</p>
+       <p class="text-sm font-mono text-red-500 line-through opacity-50">${formatTime(flight.departure.scheduled)}</p>
+       <p class="text-lg font-mono text-red-600 font-black">${formatTime(flight.departure.estimated)}</p>`
+                : `<p class="text-sm font-mono mt-1">${formatTime(flight.departure.scheduled)}</p>`;
+
+            // 判斷抵達時間：同樣處理紅字
+            const arrTimeHtml = arrDelay > 0
+                ? `<p class="text-xs font-mono text-red-500 font-bold">延誤 ${arrDelay}m</p>
+       <p class="text-lg font-mono text-red-600 font-black">${formatTime(flight.arrival.estimated)}</p>`
+                : `<p class="text-sm font-mono mt-1">${formatTime(flight.arrival.scheduled)}</p>`;
+
+            content.innerHTML = `
+    <div class="space-y-6">
+        <div class="flex justify-between items-center">
+            <span class="text-xs font-bold px-2 py-1 rounded ${depDelay > 0 ? 'bg-red-100 text-red-600' : 'bg-slate-800 text-white'}">
+                ${depDelay > 0 ? '⚠️ 延誤' : (statusMapping[flight.flight_status] || flight.flight_status)}
+            </span>
+            <span class="text-[10px] text-gray-400">更新：${new Date().toLocaleTimeString()}</span>
+        </div>
+
+        <div class="relative py-4">
+            <div class="absolute top-1/2 left-0 w-full h-[1px] bg-gray-200"></div>
+            <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 bg-white px-2">
+                <span class="text-lg">✈️</span>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-8">
+            <div>
+                <p class="text-[10px] text-gray-400 tracking-widest uppercase">Departure</p>
+                <p class="text-2xl font-black text-slate-800">${flight.departure.iata}</p>
+                <p class="text-xs font-bold text-slate-600">航廈 ${flight.departure.terminal || '--'} / 門 ${flight.departure.gate || '--'}</p>
+                ${depTimeHtml} </div>
+            <div class="text-right">
+                <p class="text-[10px] text-gray-400 tracking-widest uppercase">Arrival</p>
+                <p class="text-2xl font-black text-slate-800">${flight.arrival.iata}</p>
+                <p class="text-xs font-bold text-slate-600">航廈 ${flight.arrival.terminal || '--'} / 轉盤 ${flight.arrival.baggage || '--'}</p>
+                ${arrTimeHtml} </div>
+        </div>
+    </div>
+`;
+        } else {
+            content.innerHTML = '<p class="text-center py-8 text-red-400">暫無該航班的即時資訊</p>';
+        }
+    } catch (error) {
+        content.innerHTML = '<p class="text-center py-8 text-red-500">無法取得資料，請檢查 API 設定</p>';
+    }
+}
+
+function closeFlightModal() {
+    document.getElementById('flight-modal').classList.add('hidden');
+}
+
+function showTab(tabName) {
+    // 1. 隱藏所有分頁
+    document.querySelectorAll('.tab-pane').forEach(pane => {
+        pane.classList.add('hidden');
+    });
+
+    // 2. 顯示目標分頁
+    const targetPane = document.getElementById(`tab-${tabName}-content`);
+    if (targetPane) {
+        targetPane.classList.remove('hidden');
+    }
+
+    // 3. 💡 關鍵修正：切換到記帳分頁時觸發 fetchExpenses
+    if (tabName === 'split') {
+        if (typeof fetchExpenses === 'function') {
+            fetchExpenses(); 
+        }
+    }
+    
+    // 3. 更新按鈕顏色狀態 (變回灰色)
+    document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('text-slate-800');
+        btn.classList.add('text-gray-400');
+    });
+
+    // 4. 高亮目前點選的按鈕 (變成深色)
+    const activeBtn = document.getElementById(`btn-${tabName}`);
+    if (activeBtn) {
+        activeBtn.classList.remove('text-gray-400');
+        activeBtn.classList.add('text-slate-800');
+    }
+    
 }
