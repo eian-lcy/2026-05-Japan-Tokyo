@@ -1060,7 +1060,7 @@ async function checkFlightStatus(flightIata) {
 
     try {
         // 💡 串接 AviationStack API (範例網址)
-        const response = await fetch(`http://api.aviationstack.com/v1/flights?access_key=${FLIGHT_API_KEY}&flight_iata=${flightIata}`);
+        const response = await fetch(`https://api.aviationstack.com/v1/flights?access_key=${FLIGHT_API_KEY}&flight_iata=${flightIata}`);
         const result = await response.json();
 
         if (result.data && result.data.length > 0) {
