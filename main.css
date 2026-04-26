@@ -296,3 +296,6 @@ input[type=number] {
     letter-spacing: 0.025em;
     font-weight: 600;
 }
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+}
