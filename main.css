@@ -299,3 +299,10 @@ input[type=number] {
 .pb-safe {
     padding-bottom: env(safe-area-inset-bottom);
 }
+nav {
+    /* 增加 padding-bottom 以避開 iOS 的 Home Indicator */
+    padding-bottom: calc(env(safe-area-inset-bottom) + 12px); 
+    /* 輕微增加陰影與模糊背景增加層次感 */
+    backdrop-filter: blur(8px);
+    background-color: rgba(255, 255, 255, 0.9);
+}
