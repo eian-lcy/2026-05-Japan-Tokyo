@@ -70,30 +70,10 @@ input[type=number] {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    border: 2px solid var(--accent-color);
-    color: var(--accent-color);
-    background-color: transparent;
-    border-radius: 9999px;
-    font-size: 10px;
-    font-weight: 700;
-    padding: 2px 10px;
-    margin-left: 6px;
-    cursor: pointer;
-    transition: all 0.2s ease-in-out;
-    vertical-align: middle;
-    white-space: nowrap;
-    /* 確保按鈕文字不換行 */
-}
 
-/* --- 藥丸形導航按鈕樣式 --- */
-.btn-pill-nav {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    
     /* 邊框設定 */
-    border: 1px solid var(--accent-color); 
-    
+    border: 1px solid var(--accent-color);
+
     /* 💡 加入這兩行：清除 iOS/Android 原生按鈕樣式，強制顯示自訂邊框 */
     -webkit-appearance: none;
     appearance: none;
@@ -220,21 +200,33 @@ input[type=number] {
     transition: all 0.2s;
     cursor: pointer;
 }
-.priority-dot.must-buy { background-color: #ef4444; border-color: #ef4444; } /* 紅色: 必買 */
-.priority-dot.looking { background-color: #3b82f6; border-color: #3b82f6; } /* 藍色: 看看 */
+
+.priority-dot.must-buy {
+    background-color: #ef4444;
+    border-color: #ef4444;
+}
+
+/* 紅色: 必買 */
+.priority-dot.looking {
+    background-color: #3b82f6;
+    border-color: #3b82f6;
+}
+
+/* 藍色: 看看 */
 
 /* 長按彈出的自訂選單 */
 #context-menu {
     position: fixed;
     z-index: 1000;
     background: white;
-    box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
     border-radius: 12px;
     padding: 8px 0;
     min-width: 160px;
     display: none;
     font-family: 'Noto Serif TC', serif;
 }
+
 .menu-item {
     padding: 10px 16px;
     font-size: 13px;
@@ -243,21 +235,64 @@ input[type=number] {
     align-items: center;
     cursor: pointer;
 }
-.menu-item:hover { background-color: #f8fafc; }
-.menu-divider { height: 1px; background: #f1f5f9; margin: 4px 0; }
+
+.menu-item:hover {
+    background-color: #f8fafc;
+}
+
+.menu-divider {
+    height: 1px;
+    background: #f1f5f9;
+    margin: 4px 0;
+}
+
 .shopping-card {
     /* 💡 核心修正：防止 iOS 彈出系統選單與文字選取 */
-    -webkit-touch-callout: none; /* 禁用 iOS 長按彈出的系統選單 */
-    -webkit-user-select: none;   /* 禁用 iOS 文字選取 */
-    user-select: none;           /* 禁用標準文字選取 */
-    
+    -webkit-touch-callout: none;
+    /* 禁用 iOS 長按彈出的系統選單 */
+    -webkit-user-select: none;
+    /* 禁用 iOS 文字選取 */
+    user-select: none;
+    /* 禁用標準文字選取 */
+
     /* 保持原本的樣式 */
     cursor: pointer;
-    -webkit-tap-highlight-color: transparent; /* 移除點擊時的藍色高亮 */
+    -webkit-tap-highlight-color: transparent;
+    /* 移除點擊時的藍色高亮 */
 }
 
 /* 也可以在滑過時加一點點陰影變化 */
 .shopping-card:hover {
     border-color: #cbd5e1;
     background-color: #fcfcfc;
+}
+
+/* main.css */
+
+/* 隱藏捲動條但保留功能 */
+.no-scrollbar::-webkit-scrollbar {
+    display: none;
+}
+
+.no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+}
+
+/* 行程卡片的微調 */
+.snap-start {
+    scroll-snap-align: start;
+}
+
+/* 時間軸圓點與線條動態感 */
+.itinerary-dot-active {
+    border-color: #1e293b !important;
+    background-color: #1e293b !important;
+}
+
+/* 營業時間的小標籤 */
+.business-hour-tag {
+    font-size: 9px;
+    letter-spacing: 0.025em;
+    font-weight: 600;
 }
