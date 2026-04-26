@@ -1149,10 +1149,10 @@ function showTab(tabName) {
     // 3. 💡 關鍵修正：切換到記帳分頁時觸發 fetchExpenses
     if (tabName === 'split') {
         if (typeof fetchExpenses === 'function') {
-            fetchExpenses(); 
+            fetchExpenses();
         }
     }
-    
+
     // 3. 更新按鈕顏色狀態 (變回灰色)
     document.querySelectorAll('.tab-btn').forEach(btn => {
         btn.classList.remove('text-slate-800');
@@ -1165,5 +1165,30 @@ function showTab(tabName) {
         activeBtn.classList.remove('text-gray-400');
         activeBtn.classList.add('text-slate-800');
     }
+
+}
+function scrollToDay(dayNumber) {
+    const container = document.getElementById('itinerary-container');
+    const targetCard = document.getElementById(`day-card-${dayNumber}`);
     
+    if (container && targetCard) {
+        // 使用 scrollLeft 直接設定
+        container.scrollTo({
+            left: targetCard.offsetLeft, 
+            behavior: 'smooth'
+        });
+    }
+    updateDayNavUI(dayNumber);
+}
+function updateDayNavUI(activeDay) {
+    const navButtons = document.querySelectorAll('#tab-itinerary-content .flex.gap-2 button');
+    navButtons.forEach((btn, index) => {
+        if (index + 1 === activeDay) {
+            btn.className = "flex-1 min-w-[70px] bg-slate-800 text-white py-3 rounded-lg flex flex-col items-center shadow-sm transition";
+            btn.querySelector('span:first-child').className = "text-[10px] opacity-70";
+        } else {
+            btn.className = "flex-1 min-w-[70px] bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm transition";
+            btn.querySelector('span:first-child').className = "text-[10px]";
+        }
+    });
 }
