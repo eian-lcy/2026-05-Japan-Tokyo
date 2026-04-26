@@ -72,30 +72,20 @@
                 </div>
                 <!-- 航班資訊 -->
                 <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-8">
-                    <div class="bg-white border border-gray-100 p-6 shadow-sm relative group">
-                        <div class="flex justify-between items-start mb-5">
+                    <div class="bg-white border border-gray-100 p-5 shadow-sm relative rounded-lg">
+                        <div class="flex justify-between items-center mb-6">
                             <h3 class="text-xs font-bold text-gray-400 tracking-widest">FLIGHT / 航班資訊</h3>
-                            <button onclick="openDocModal('flight')"
-                                class="text-gray-400 hover:text-slate-800 transition" title="附加/查看文件">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24"
-                                    stroke="currentColor">
+                            <button onclick="openDocModal('flight')" class="text-gray-400 hover:text-slate-800">
+                                <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
                                         d="M15.172 7l-6.586 6.586a2 2 0 102.828 2.828l6.414-6.586a4 4 0 00-5.656-5.656l-6.415 6.585a6 6 0 108.486 8.486L20.5 13" />
                                 </svg>
                             </button>
                         </div>
+                        <!-- <div class="bg-white border border-gray-100 p-6 shadow-sm relative group">
                         <div class="space-y-4 text-sm text-slate-800">
                             <div class="flex justify-between items-end border-b border-gray-50 pb-3">
-                                <div>
-                                    <span class="block text-xs text-gray-500 mb-1">去程 / <a
-                                            href="https://www.flyscoot.com/zhtw" target="_blank"
-                                            class="hover:text-slate-800 underline underline-offset-2 transition">酷航
-                                            ↗</a>
-                                        <span class="hover:text-slate-800 underline underline-offset-2 transition"
-                                            onclick="checkFlightStatus('TR866')">TR866</span>
-                                    </span>
-                                    <strong class="font-medium text-base">06:45 桃園 (TPE) T1</strong>
-                                </div>
+                                
                                 <span class="text-gray-400 px-2">➔</span>
                                 <div class="text-right"><span
                                         class="block text-xs text-gray-500 mb-1">05/03</span><strong
@@ -118,8 +108,57 @@
                                         class="font-medium text-base">17:05 桃園 (TPE) T2</strong></div>
                             </div>
                         </div>
-                    </div>
+                    </div> -->
 
+                        <div class="mb-6 pb-6 border-b border-gray-50">
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded-sm font-bold">去程
+                                    05/03</span>
+
+                                <div class="text-xs text-blue-1000 font-bold">
+                                    <a href="https://www.flyscoot.com/zhtw" target="_blank"
+                                        class="hover:text-blue-800 underline underline-offset-2 transition">酷航</a>
+                                    <span class="hover:text-blue-800 underline underline-offset-2 transition"
+                                        onclick="checkFlightStatus('TR866')">TR866</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex-1">
+                                    <div class="text-2xl font-black text-slate-800">06:45</div>
+                                    <div class="text-xs font-bold text-gray-500">桃園 TPE T1</div>
+                                </div>
+                                <div class="px-4 text-gray-300">➔</div>
+                                <div class="flex-1 text-right">
+                                    <div class="text-2xl font-black text-slate-800">11:15</div>
+                                    <div class="text-xs font-bold text-gray-500">成田 NRT T1</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div class="flex justify-between items-center mb-3">
+                                <span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded-sm font-bold">回程
+                                    05/07</span>
+                                <div class="text-xs text-blue-1000 font-bold">
+                                    <a href="https://www.evaair.com/zh-tw/index.html" target="_blank"
+                                        class="hover:text-blue-800 underline underline-offset-2 transition">長榮</a>
+                                    <span class="hover:text-blue-800 underline underline-offset-2 transition"
+                                        onclick="checkFlightStatus('BR197')">BR197</span>
+                                </div>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <div class="flex-1">
+                                    <div class="text-2xl font-black text-slate-800">14:25</div>
+                                    <div class="text-xs font-bold text-gray-500">成田 NRT T1</div>
+                                </div>
+                                <div class="px-4 text-gray-300">➔</div>
+                                <div class="flex-1 text-right">
+                                    <div class="text-2xl font-black text-slate-800">17:05</div>
+                                    <div class="text-xs font-bold text-gray-500">桃園 TPE T2</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                     <div
                         class="bg-white border border-gray-100 p-6 shadow-sm flex flex-col justify-between relative group">
                         <div>
@@ -402,7 +441,7 @@
                                                     - 01:00</span>
                                             </div>
                                             <button onclick="navigateToShopping('location', '唐吉訶德')"
-                                                class="btn-pill-nav">唐吉訶德
+                                                class="btn-pill-nav">DONKI
                                                 ↗</button>
                                         </div>
                                         <div class="flex items-center justify-between">
@@ -414,7 +453,7 @@
                                                     - 22:00</span>
                                             </div>
                                             <button onclick="navigateToShopping('location', '衣服包包鞋子')"
-                                                class="btn-pill-nav">👕💼👟
+                                                class="btn-pill-nav">👕👟
                                                 ↗</button>
                                         </div>
                                     </div>
@@ -587,7 +626,7 @@
                                                     - 21:00</span>
                                             </div>
                                             <button onclick="navigateToShopping('location', '衣服包包鞋子')"
-                                                class="btn-pill-nav">👕💼👟
+                                                class="btn-pill-nav">👕👟
                                                 ↗</button>
                                         </div>
                                     </div>
@@ -1422,7 +1461,7 @@
         </div>
         <!-- 上下文選單 -->
         <div id="context-menu"></div>
-        <footer class="text-center text-xs text-gray-400 py-12">v20260427.0025 © 2026 Journey Project. </footer>
+        <footer class="text-center text-xs text-gray-400 py-12">v20260427.0110 © 2026 Journey Project. </footer>
         <div id="lightbox"
             class="hidden fixed inset-0 bg-black bg-opacity-95 z-[100] cursor-zoom-out flex flex-col justify-center items-center p-4"
             onclick="closeLightbox()">
