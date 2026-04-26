@@ -5,7 +5,10 @@ let currentItems = [];
 let settlementMode = 'separate';
 let hasFetchedRate = false;
 
-checkUser(() => { fetchExpenses(); });
+function initSplitPage() {
+    console.log("初始化記帳分頁...");
+    fetchExpenses();
+}
 document.getElementById('form-date').valueAsDate = new Date();
 
 // --- 1. 資料讀取 ---
@@ -35,16 +38,16 @@ function calculateSettlement() {
         for (const [person, p_amt] of Object.entries(exp.split_details)) {
             if (persons.includes(person)) {
                 absoluteShare[exp.currency][person] += p_amt; //
-                
+
                 // 判斷個人在明細中是否顯示為已結清
                 const pNum = person === '賴' ? 'p1' : person === '李' ? 'p2' : 'p3';
                 const isPersonSettled = exp[`settled_${pNum}`];
-                
-                history[person].push({ 
-                    desc: exp.description || '消費', 
-                    currency: exp.currency, 
-                    paidBy: exp.payer, 
-                    myShare: p_amt, 
+
+                history[person].push({
+                    desc: exp.description || '消費',
+                    currency: exp.currency,
+                    paidBy: exp.payer,
+                    myShare: p_amt,
                     is_settled: isAllSettled || isPersonSettled // 任一條件成立即顯示結清
                 });
             }
@@ -84,14 +87,14 @@ function calculateSettlement() {
     } else {
         const targetCurr = document.getElementById('merge-target').value;
         const rate = parseFloat(document.getElementById('merge-rate').value) || 0.21;
-        let mPaid = { '賴': 0, '李': 0, '林': 0 }; 
+        let mPaid = { '賴': 0, '李': 0, '林': 0 };
         let mShare = { '賴': 0, '李': 0, '林': 0 };
         persons.forEach(p => {
             if (targetCurr === 'TWD') {
-                mPaid[p] = paid.TWD[p] + (paid.JPY[p] * rate); 
+                mPaid[p] = paid.TWD[p] + (paid.JPY[p] * rate);
                 mShare[p] = share.TWD[p] + (share.JPY[p] * rate);
             } else {
-                mPaid[p] = paid.JPY[p] + (paid.TWD[p] * rate); 
+                mPaid[p] = paid.JPY[p] + (paid.TWD[p] * rate);
                 mShare[p] = share.JPY[p] + (share.TWD[p] * rate);
             }
         });
@@ -280,7 +283,7 @@ function handleCurrencyChange() {
 }
 
 // --- 6. 記帳 Modal 邏輯 ---
-function openModal(id = null) {
+function openExpenseModal(id = null) {
     const modal = document.getElementById('expense-modal');
     const deleteBtn = document.getElementById('btn-delete');
 
@@ -353,7 +356,7 @@ async function saveExpense() {
     const total = parseFloat(document.getElementById('form-amount').value) || 0;
     const mode = document.getElementById('form-split-mode').value;
     let details = {};
-    
+
     persons.forEach(p => {
         if (document.getElementById(`check-${p}`).checked) {
             const val = parseFloat(document.getElementById('input-' + p).value) || 0;
@@ -377,7 +380,7 @@ async function saveExpense() {
     };
 
     const id = document.getElementById('form-id').value;
-    if (id) await supabaseClient.from('expenses').update(data).eq('id', id); 
+    if (id) await supabaseClient.from('expenses').update(data).eq('id', id);
     else await supabaseClient.from('expenses').insert([data]);
 
     document.getElementById('expense-modal').classList.add('hidden');
@@ -390,7 +393,7 @@ function renderExpenses() {
     currentData.forEach(item => {
         const cardClass = item.is_settled ? 'opacity-50 bg-gray-100' : 'bg-white';
         container.innerHTML += `
-            <div onclick="openModal('${item.id}')" class="p-3 border rounded-lg mb-2 shadow-sm cursor-pointer ${cardClass}">
+            <div onclick="openExpenseModal('${item.id}')" class="p-3 border rounded-lg mb-2 shadow-sm cursor-pointer ${cardClass}">
                 <div class="flex justify-between items-center">
                     <span class="text-xs font-bold text-slate-400">${item.date}</span>
                     <span class="text-xs font-bold">${item.payer} 付</span>
@@ -414,8 +417,8 @@ async function calculateLinBalance() {
     // 這樣一來，只要你在購物清單勾選了「林已結清」，這裡的 954 元就會自動消失
 }
 
-function closeModal() { document.getElementById('expense-modal').classList.add('hidden'); }
-async function deleteExpense() { if (confirm('確定刪除？')) { await supabaseClient.from('expenses').delete().eq('id', document.getElementById('form-id').value); closeModal(); fetchExpenses(); } }
+function closeExpenseModal() { document.getElementById('expense-modal').classList.add('hidden'); }
+async function deleteExpense() { if (confirm('確定刪除？')) { await supabaseClient.from('expenses').delete().eq('id', document.getElementById('form-id').value); closeExpenseModal(); fetchExpenses(); } }
 supabaseClient.channel('split-db').on('postgres_changes', { event: '*', schema: 'public', table: 'expenses' }, () => fetchExpenses()).subscribe();
 
 // --- 7. 匯出結算明細圖片 ---
@@ -487,4 +490,44 @@ function initSplitInputs() {
             <input type="number" id="input-${p}" oninput="calculateSplit()" class="w-24 text-right border-b font-bold text-slate-800 focus:border-slate-800 outline-none">
         </div>`;
     }).join('');
+}
+
+function exportToExcel() {
+    if (!currentData || currentData.length === 0) {
+        alert("目前沒有資料可以匯出");
+        return;
+    }
+
+    // 1. 整理資料格式
+    const excelRows = currentData.map(item => {
+        return {
+            "日期": item.date,
+            "說明": item.description || "未命名項目",
+            "幣別": item.currency,
+            "總金額": item.total_amount,
+            "付款人": item.payer,
+            "賴(分擔)": item.split_details["賴"] || 0,
+            "李(分擔)": item.split_details["李"] || 0,
+            "林(分擔)": item.split_details["林"] || 0,
+            "狀態": item.is_settled ? "已結清" : "未結清"
+        };
+    });
+
+    // 2. 建立工作表
+    const worksheet = XLSX.utils.json_to_sheet(excelRows);
+
+    // 3. 設定欄位寬度
+    const wscols = [
+        { wch: 12 }, { wch: 25 }, { wch: 8 }, { wch: 12 },
+        { wch: 10 }, { wch: 12 }, { wch: 12 }, { wch: 12 }, { wch: 10 }
+    ];
+    worksheet['!cols'] = wscols;
+
+    // 4. 建立活頁簿並寫入資料
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "消費明細");
+
+    // 5. 下載檔案
+    const fileName = `東京旅遊記帳_${new Date().toISOString().slice(0, 10)}.xlsx`;
+    XLSX.writeFile(workbook, fileName);
 }
