@@ -1,29 +1,23 @@
 // 初始化
-const CURRENT_VERSION = 'v20260427.1135'; 
+const VERSION_TAG = 'v20260427.1200'; 
 
-function forceLogoutOnVersionMismatch() {
-    // 1. 取得瀏覽器中儲存的舊版本號
+(function() {
     const savedVersion = localStorage.getItem('app_version');
-
-    // 2. 如果版本不一致 (代表系統剛更新)
-    if (savedVersion !== CURRENT_VERSION) {
-        console.log('偵測到系統更新，執行強制登出...');
-
-        // 3. 清除所有本地資料與快取 (包含行李清單狀態等)
-        localStorage.clear(); 
-
-        // 4. 更新版本號為最新版
-        localStorage.setItem('app_version', CURRENT_VERSION);
-
-        // 5. 執行 Supabase 登出動作
-        if (typeof supabaseClient !== 'undefined') {
-            supabaseClient.auth.signOut().then(() => {
-                // 6. 強制導回首頁或重新整理，確保進入 Auth Container
-                window.location.reload();
-            });
-        }
+    
+    if (savedVersion !== VERSION_TAG) {
+        console.log('系統版本更新，正在清除舊快取並強制登出...');
+        
+        // 1. 清除所有本地儲存（包含 Supabase 的 Token 和舊的篩選狀態）
+        localStorage.clear();
+        
+        // 2. 寫入新版本號
+        localStorage.setItem('app_version', VERSION_TAG);
+        
+        // 3. 核心關鍵：強制重新導向到首頁並重新整理，這會讓舊的 Session 失效
+        window.location.replace(window.location.href);
+        return; // 停止執行後續程式碼
     }
-}
+})();
 checkUser((session) => {
     initLuggageStorage();
     applyFilters();
