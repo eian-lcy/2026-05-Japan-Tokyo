@@ -1,5 +1,5 @@
 // 初始化
-const VERSION_TAG = 'v20260427.1200'; 
+const VERSION_TAG = 'v20260427.1935'; 
 
 (function() {
     const savedVersion = localStorage.getItem('app_version');
@@ -18,11 +18,13 @@ const VERSION_TAG = 'v20260427.1200';
         return; // 停止執行後續程式碼
     }
 })();
+
 checkUser((session) => {
     initLuggageStorage();
     applyFilters();
     fetchReceipts();
     enableRealtime();
+    initScrollSpy(); 
 });
 
 /**
@@ -320,41 +322,62 @@ function handleSort(e) {
     currentSort = e.target.value;
     applyFilters();
 }
+
 async function applyFilters() {
+    showSkeleton();
     let query = supabaseClient.from('shopping_list').select('*');
 
-    // 地點篩選
+    // 1. 基礎篩選 (地點與人員)
     if (filters.location) query = query.eq('location', filters.location);
-
-    // 人員篩選：多選 or 查詢
     if (filters.people.size > 0) {
-        const orConditions = Array.from(filters.people)
-            .map(p => `${p}.gt.0`)
-            .join(',');
+        const orConditions = Array.from(filters.people).map(p => `${p}.gt.0`).join(',');
         query = query.or(orConditions);
     }
+    if (searchKeyword) query = query.ilike('item_name', `%${searchKeyword}%`);
 
-    // 💡 關鍵字搜尋 (不分大小寫)
-    if (searchKeyword) {
-        query = query.ilike('item_name', `%${searchKeyword}%`);
-    }
-
-    /// 💡 排序邏輯
-    if (currentSort === 'priority_p1') {
-        // 先排優先級(1>2>0)，再排時間
-        query = query.order('priority_p1', { ascending: true }).order('created_at', { ascending: false });
-    } else {
-        query = query.order(currentSort, { ascending: currentSort === 'location' });
-    }
+    // 2. 取得資料
     const { data, error } = await query;
-
-    if (!error) {
-        renderShoppingList(data);
-        document.getElementById('item-count').textContent = `${data.length} items`;
-        updateFilterUI();
+    if (error) {
+        console.error("抓取清單失敗:", error.message);
+        return;
     }
-}
 
+    // 💡 3. 強大的自定義排序邏輯 (JS 處理)
+    const sortedData = [...data].sort((a, b) => {
+        // --- 排序 A: 優先程度優先 ---
+        if (currentSort === 'priority_p1') {
+            // 檢查是否任何人有標記 🔥 (值為 1)
+            const aHasMustBuy = (a.priority_p1 === 1 || a.priority_p2 === 1 || a.priority_p3 === 1);
+            const bHasMustBuy = (b.priority_p1 === 1 || b.priority_p2 === 1 || b.priority_p3 === 1);
+            
+            // 🔥 置頂邏輯
+            if (aHasMustBuy && !bHasMustBuy) return -1;
+            if (!aHasMustBuy && bHasMustBuy) return 1;
+
+            // 若都沒有 🔥，檢查是否有人標記 👀 (值為 2)
+            const aHasLooking = (a.priority_p1 === 2 || a.priority_p2 === 2 || a.priority_p3 === 2);
+            const bHasLooking = (b.priority_p1 === 2 || b.priority_p2 === 2 || b.priority_p3 === 2);
+            if (aHasLooking && !bHasLooking) return -1;
+            if (!aHasLooking && bHasLooking) return 1;
+
+            // 若優先權重相同，則按時間新到舊排
+            return new Date(b.created_at) - new Date(a.created_at);
+        }
+
+        // --- 排序 B: 按地點排序 ---
+        if (currentSort === 'location') {
+            return a.location.localeCompare(b.location, 'zh-TW');
+        }
+
+        // --- 排序 C: 按新增順序 (預設) ---
+        return new Date(b.created_at) - new Date(a.created_at);
+    });
+
+    // 4. 渲染畫面
+    renderShoppingList(sortedData);
+    document.getElementById('item-count').textContent = `${sortedData.length} items`;
+    updateFilterUI();
+}
 
 // --- 3. 新增按鈕觸發函式 ---
 
@@ -673,16 +696,6 @@ function openModal(itemStr = null) {
     if (fP1) fP1.value = p1;
     if (fP2) fP2.value = p2;
     if (fP3) fP3.value = p3;
-
-    // 5. 更新 UI 標籤上的小圓圈 (賴/李/林)
-    const updateLabelWithDot = (labelId, personName, status, personKey) => {
-        const labelEl = document.getElementById(labelId);
-        if (labelEl) {
-            const classes = status === 1 ? 'must-buy' : status === 2 ? 'looking' : '';
-            // 💡 標籤緊貼，移除空格
-            labelEl.innerHTML = `${personName}<span class="priority-dot ${classes}" id="dot-${personKey}" onclick="cyclePriority('${personKey}')"></span>`;
-        }
-    };
 
     updateModalLabels(p1, p2, p3);
     // 最後顯示 Modal
@@ -1186,27 +1199,58 @@ function showTab(tabName) {
     }
 
 }
+
 function scrollToDay(dayNumber) {
     const container = document.getElementById('itinerary-container');
     const targetCard = document.getElementById(`day-card-${dayNumber}`);
     
     if (container && targetCard) {
-        // 使用 scrollLeft 直接設定
+        // 使用相對 offsetLeft 確保定位精準
+        const targetX = targetCard.offsetLeft - container.offsetLeft;
+        
         container.scrollTo({
-            left: targetCard.offsetLeft, 
+            left: targetX, 
             behavior: 'smooth'
         });
     }
-    updateDayNavUI(dayNumber);
 }
+
+function initScrollSpy() {
+    const container = document.getElementById('itinerary-container');
+    const cards = document.querySelectorAll('[id^="day-card-"]');
+
+    const observerOptions = {
+        root: container,
+        threshold: 0.6 // 當卡片有 60% 進入畫面時觸發
+    };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                // 取得目前是哪一天的 ID
+                const dayId = entry.target.id.split('-').pop();
+                updateDayNavUI(parseInt(dayId));
+            }
+        });
+    }, observerOptions);
+
+    cards.forEach(card => observer.observe(card));
+}
+
 function updateDayNavUI(activeDay) {
-    const navButtons = document.querySelectorAll('#tab-itinerary-content .flex.gap-2 button');
+    // 找出所有標籤按鈕
+    const navButtons = document.querySelectorAll('.day-nav-btn');
+    
     navButtons.forEach((btn, index) => {
-        if (index + 1 === activeDay) {
-            btn.className = "flex-1 min-w-[70px] bg-slate-800 text-white py-3 rounded-lg flex flex-col items-center shadow-sm transition";
+        const isCurrent = (index + 1 === activeDay);
+        
+        if (isCurrent) {
+            // 啟動樣式 (深色)
+            btn.className = "day-nav-btn flex-1 bg-slate-800 text-white py-3 rounded-lg flex flex-col items-center shadow-sm transition";
             btn.querySelector('span:first-child').className = "text-[10px] opacity-70";
         } else {
-            btn.className = "flex-1 min-w-[70px] bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm transition";
+            // 預設樣式 (白色)
+            btn.className = "day-nav-btn flex-1 bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm transition";
             btn.querySelector('span:first-child').className = "text-[10px]";
         }
     });
