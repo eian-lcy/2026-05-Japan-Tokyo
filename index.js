@@ -1,4 +1,29 @@
 // 初始化
+const CURRENT_VERSION = 'v20260427.1130'; 
+
+function forceLogoutOnVersionMismatch() {
+    // 1. 取得瀏覽器中儲存的舊版本號
+    const savedVersion = localStorage.getItem('app_version');
+
+    // 2. 如果版本不一致 (代表系統剛更新)
+    if (savedVersion !== CURRENT_VERSION) {
+        console.log('偵測到系統更新，執行強制登出...');
+
+        // 3. 清除所有本地資料與快取 (包含行李清單狀態等)
+        localStorage.clear(); 
+
+        // 4. 更新版本號為最新版
+        localStorage.setItem('app_version', CURRENT_VERSION);
+
+        // 5. 執行 Supabase 登出動作
+        if (typeof supabaseClient !== 'undefined') {
+            supabaseClient.auth.signOut().then(() => {
+                // 6. 強制導回首頁或重新整理，確保進入 Auth Container
+                window.location.reload();
+            });
+        }
+    }
+}
 checkUser((session) => {
     initLuggageStorage();
     applyFilters();
