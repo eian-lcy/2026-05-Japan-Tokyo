@@ -1,5 +1,5 @@
 // 初始化
-const CURRENT_VERSION = 'v20260427.1130'; 
+const CURRENT_VERSION = 'v20260427.1135'; 
 
 function forceLogoutOnVersionMismatch() {
     // 1. 取得瀏覽器中儲存的舊版本號
