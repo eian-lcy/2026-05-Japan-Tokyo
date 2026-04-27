@@ -300,33 +300,33 @@
                         <h2 class="text-xl font-bold">行程總覽</h2>
                     </div>
                 </div>
-                <div class="flex gap-2 overflow-x-auto no-scrollbar pb-4 mb-2 px-1">
-                    <button onclick="scrollToDay(1)"
-                        class="flex-1 min-w-[70px] bg-slate-800 text-white py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
-                        <span class="text-[10px] opacity-70">DAY</span>
-                        <span class="text-lg font-black">01</span>
-                    </button>
-                    <button onclick="scrollToDay(2)"
-                        class="flex-1 min-w-[70px] bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
-                        <span class="text-[10px]">DAY</span>
-                        <span class="text-lg font-black">02</span>
-                    </button>
-                    <button onclick="scrollToDay(3)"
-                        class="flex-1 min-w-[70px] bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
-                        <span class="text-[10px]">DAY</span>
-                        <span class="text-lg font-black">03</span>
-                    </button>
-                    <button onclick="scrollToDay(4)"
-                        class="flex-1 min-w-[70px] bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
-                        <span class="text-[10px]">DAY</span>
-                        <span class="text-lg font-black">04</span>
-                    </button>
-                    <button onclick="scrollToDay(5)"
-                        class="flex-1 min-w-[70px] bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
-                        <span class="text-[10px]">DAY</span>
-                        <span class="text-lg font-black">05</span>
-                    </button>
-                </div>
+                <div class="grid grid-cols-5 gap-2 overflow-x-auto no-scrollbar pb-4 mb-2 px-1">
+                <button id="day-nav-1" onclick="scrollToDay(1)"
+                    class="day-nav-btn flex-1 bg-slate-800 text-white py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
+                    <span class="text-[10px] opacity-70">DAY</span>
+                    <span class="text-lg font-black">01</span>
+                </button>
+                <button id="day-nav-2" onclick="scrollToDay(2)"
+                    class="day-nav-btn flex-1 bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
+                    <span class="text-[10px]">DAY</span>
+                    <span class="text-lg font-black">02</span>
+                </button>
+                <button id="day-nav-3" onclick="scrollToDay(3)"
+                    class="day-nav-btn flex-1 bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
+                    <span class="text-[10px]">DAY</span>
+                    <span class="text-lg font-black">03</span>
+                </button>
+                <button id="day-nav-4" onclick="scrollToDay(4)"
+                    class="day-nav-btn flex-1 bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
+                    <span class="text-[10px]">DAY</span>
+                    <span class="text-lg font-black">04</span>
+                </button>
+                <button id="day-nav-5" onclick="scrollToDay(5)"
+                    class="day-nav-btn flex-1 bg-white border border-gray-200 text-slate-400 py-3 rounded-lg flex flex-col items-center shadow-sm active:scale-95 transition">
+                    <span class="text-[10px]">DAY</span>
+                    <span class="text-lg font-black">05</span>
+                </button>
+            </div>
 
                 <section id="itinerary" class="py-8 pt-1">
                     <div id="itinerary-container"
