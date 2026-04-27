@@ -1,5 +1,5 @@
 // 初始化
-const VERSION_TAG = 'v20260427.1935'; 
+const VERSION_TAG = 'v20260427.2315'; 
 
 (function() {
     const savedVersion = localStorage.getItem('app_version');
@@ -1171,13 +1171,17 @@ function showTab(tabName) {
     document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.classList.add('hidden');
     });
-
+    
     // 2. 顯示目標分頁
     const targetPane = document.getElementById(`tab-${tabName}-content`);
     if (targetPane) {
         targetPane.classList.remove('hidden');
     }
 
+    if (tabName === 'itinerary') {
+        setTimeout(initScrollSpy, 100); // 延遲 100ms 確保分頁已完全顯示
+    }
+    
     // 3. 💡 關鍵修正：切換到記帳分頁時觸發 fetchExpenses
     if (tabName === 'split') {
         if (typeof fetchExpenses === 'function') {
@@ -1221,7 +1225,8 @@ function initScrollSpy() {
 
     const observerOptions = {
         root: container,
-        threshold: 0.6 // 當卡片有 60% 進入畫面時觸發
+        threshold: 0.5, // 當卡片有 60% 進入畫面時觸發
+        rootMargin: '0px -10% 0px -10%'
     };
 
     const observer = new IntersectionObserver((entries) => {
