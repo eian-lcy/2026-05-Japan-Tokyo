@@ -1,5 +1,5 @@
 // 初始化
-const VERSION_TAG = 'v20260427.2315'; 
+const VERSION_TAG = 'v20260429.0055'; 
 
 (function() {
     const savedVersion = localStorage.getItem('app_version');
