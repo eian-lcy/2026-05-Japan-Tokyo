@@ -1260,3 +1260,25 @@ function updateDayNavUI(activeDay) {
         }
     });
 }
+
+// 💡 一鍵複製密碼功能
+ 
+function copyToClipboard(text) {
+    if (!navigator.clipboard) {
+        // 備用方案 (舊版瀏覽器)
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        document.execCommand("copy");
+        document.body.removeChild(textArea);
+        alert('密碼已複製到剪貼簿！');
+        return;
+    }
+    
+    navigator.clipboard.writeText(text).then(() => {
+        alert('密碼已複製！');
+    }).catch(err => {
+        console.error('複製失敗', err);
+    });
+}
