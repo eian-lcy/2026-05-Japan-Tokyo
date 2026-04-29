@@ -1,18 +1,18 @@
 // 初始化
-const VERSION_TAG = 'v20260429.0055'; 
+const VERSION_TAG = 'v20260429.2235';
 
-(function() {
+(function () {
     const savedVersion = localStorage.getItem('app_version');
-    
+
     if (savedVersion !== VERSION_TAG) {
         console.log('系統版本更新，正在清除舊快取並強制登出...');
-        
+
         // 1. 清除所有本地儲存（包含 Supabase 的 Token 和舊的篩選狀態）
         localStorage.clear();
-        
+
         // 2. 寫入新版本號
         localStorage.setItem('app_version', VERSION_TAG);
-        
+
         // 3. 核心關鍵：強制重新導向到首頁並重新整理，這會讓舊的 Session 失效
         window.location.replace(window.location.href);
         return; // 停止執行後續程式碼
@@ -24,7 +24,7 @@ checkUser((session) => {
     applyFilters();
     fetchReceipts();
     enableRealtime();
-    initScrollSpy(); 
+    initScrollSpy();
 });
 
 /**
@@ -156,9 +156,12 @@ function renderShoppingList(items) {
 
     // 2. 開始渲染每一項
     items.forEach(item => {
-        const s1 = item.qty_person1 || 0, p1 = item.qty_p1_proxy || 0;
-        const s2 = item.qty_person2 || 0, p2 = item.qty_p2_proxy || 0;
-        const s3 = item.qty_person3 || 0, p3 = item.qty_p3_proxy || 0;
+        const s1 = item.qty_person1 || 0,
+            p1 = item.qty_p1_proxy || 0;
+        const s2 = item.qty_person2 || 0,
+            p2 = item.qty_p2_proxy || 0;
+        const s3 = item.qty_person3 || 0,
+            p3 = item.qty_p3_proxy || 0;
 
         const total = s1 + p1 + s2 + p2 + s3 + p3; // 💡 總計包含代購
 
@@ -182,11 +185,11 @@ function renderShoppingList(items) {
         const itemStr = encodeURIComponent(JSON.stringify(item));
         const safeName = (item.item_name || '').replace(/'/g, "\\'");
 
-        const imgHtml = item.image_url
-            ? `<div class="w-12 h-12 shrink-0 rounded-sm overflow-hidden border border-gray-200 mt-0.5 cursor-zoom-in group" onclick="event.stopPropagation(); openLightbox('${item.image_url}', '${safeName}')">
+        const imgHtml = item.image_url ?
+            `<div class="w-12 h-12 shrink-0 rounded-sm overflow-hidden border border-gray-200 mt-0.5 cursor-zoom-in group" onclick="event.stopPropagation(); openLightbox('${item.image_url}', '${safeName}')">
                  <img src="${item.image_url}" class="w-full h-full object-cover group-hover:scale-110 transition duration-300">
-               </div>`
-            : '';
+               </div>` :
+            '';
 
         // 3. 組合 HTML (修正了標籤空格與事件放置位置)
         container.innerHTML += `
@@ -349,7 +352,7 @@ async function applyFilters() {
             // 檢查是否任何人有標記 🔥 (值為 1)
             const aHasMustBuy = (a.priority_p1 === 1 || a.priority_p2 === 1 || a.priority_p3 === 1);
             const bHasMustBuy = (b.priority_p1 === 1 || b.priority_p2 === 1 || b.priority_p3 === 1);
-            
+
             // 🔥 置頂邏輯
             if (aHasMustBuy && !bHasMustBuy) return -1;
             if (!aHasMustBuy && bHasMustBuy) return 1;
@@ -538,11 +541,6 @@ function enableRealtime() {
         applyFilters();
     });
 
-    channel.on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => {
-        fetchReceipts();
-    });
-
-    // 2. 監聽收據照片的變化 (👉 這次補上這個！)
     channel.on('postgres_changes', { event: '*', schema: 'public', table: 'receipts' }, () => {
         fetchReceipts();
     });
@@ -1079,8 +1077,6 @@ function handleRightClick(e, itemId) {
 
 // index.js
 
-const FLIGHT_API_KEY = '15cd755524f1817bbf112559466a23e4';
-
 async function checkFlightStatus(flightIata) {
     const modal = document.getElementById('flight-modal');
     const content = document.getElementById('flight-info-content');
@@ -1092,8 +1088,11 @@ async function checkFlightStatus(flightIata) {
 
     try {
         // 💡 串接 AviationStack API (範例網址)
-        const response = await fetch(`https://api.aviationstack.com/v1/flights?access_key=${FLIGHT_API_KEY}&flight_iata=${flightIata}`);
-        const result = await response.json();
+        const { data: result, error } = await supabaseClient.functions.invoke('dynamic-action', {
+            body: { flightIata: flightIata }
+        });
+
+        if (error) throw error;
 
         if (result.data && result.data.length > 0) {
             const flight = result.data[0];
@@ -1108,8 +1107,11 @@ async function checkFlightStatus(flightIata) {
             const depDelay = flight.departure.delay || 0;
             const arrDelay = flight.arrival.delay || 0;
 
-            // 格式化顯示時間的輔助小工具
-            const formatTime = (isoStr) => isoStr ? isoStr.split('T')[1].substring(0, 5) : '--:--';
+            // 格式化顯示時間的輔助小工具            
+            const formatTime = (isoStr) => {
+                if (!isoStr || !isoStr.includes('T')) return '--:--';
+                return isoStr.split('T')[1].substring(0, 5);
+            };
 
             // 判斷出發時間：如果有延誤就顯示紅字與新時間
             const depTimeHtml = depDelay > 0
@@ -1171,7 +1173,7 @@ function showTab(tabName) {
     document.querySelectorAll('.tab-pane').forEach(pane => {
         pane.classList.add('hidden');
     });
-    
+
     // 2. 顯示目標分頁
     const targetPane = document.getElementById(`tab-${tabName}-content`);
     if (targetPane) {
@@ -1181,7 +1183,7 @@ function showTab(tabName) {
     if (tabName === 'itinerary') {
         setTimeout(initScrollSpy, 100); // 延遲 100ms 確保分頁已完全顯示
     }
-    
+
     // 3. 💡 關鍵修正：切換到記帳分頁時觸發 fetchExpenses
     if (tabName === 'split') {
         if (typeof fetchExpenses === 'function') {
@@ -1207,13 +1209,13 @@ function showTab(tabName) {
 function scrollToDay(dayNumber) {
     const container = document.getElementById('itinerary-container');
     const targetCard = document.getElementById(`day-card-${dayNumber}`);
-    
+
     if (container && targetCard) {
         // 使用相對 offsetLeft 確保定位精準
         const targetX = targetCard.offsetLeft - container.offsetLeft;
-        
+
         container.scrollTo({
-            left: targetX, 
+            left: targetX,
             behavior: 'smooth'
         });
     }
@@ -1245,10 +1247,10 @@ function initScrollSpy() {
 function updateDayNavUI(activeDay) {
     // 找出所有標籤按鈕
     const navButtons = document.querySelectorAll('.day-nav-btn');
-    
+
     navButtons.forEach((btn, index) => {
         const isCurrent = (index + 1 === activeDay);
-        
+
         if (isCurrent) {
             // 啟動樣式 (深色)
             btn.className = "day-nav-btn flex-1 bg-slate-800 text-white py-3 rounded-lg flex flex-col items-center shadow-sm transition";
@@ -1262,7 +1264,7 @@ function updateDayNavUI(activeDay) {
 }
 
 // 💡 一鍵複製密碼功能
- 
+
 function copyToClipboard(text) {
     if (!navigator.clipboard) {
         // 備用方案 (舊版瀏覽器)
@@ -1275,7 +1277,7 @@ function copyToClipboard(text) {
         alert('密碼已複製到剪貼簿！');
         return;
     }
-    
+
     navigator.clipboard.writeText(text).then(() => {
         alert('密碼已複製！');
     }).catch(err => {
